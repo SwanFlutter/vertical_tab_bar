@@ -1,16 +1,51 @@
-# example
+# Vertical Tab Bar Example
 
-A new Flutter project.
+This is an example app demonstrating the usage of the `vertical_tab_bar` package.
 
-## Getting Started
+## Running the Examples
 
-This project is a starting point for a Flutter application.
+### Main Example (Full Featured)
 
-A few resources to get you started if this is your first Flutter project:
+```bash
+cd example
+flutter run
+```
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+This will run `lib/main.dart` which includes:
+- 5 different pages (Home, Profile, Settings, Messages, Notifications)
+- Linear gradient theme
+- All animation features enabled
+- Responsive design demonstration
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### Simple Example
+
+```bash
+cd example
+flutter run -t lib/simple_example.dart
+```
+
+This will run a simpler version with:
+- 4 basic pages
+- Minimal setup
+- Easy to understand code
+
+## Features Demonstrated
+
+- ✅ Responsive design (sidebar on desktop, drawer on mobile)
+- ✅ Smooth animations between tabs
+- ✅ Linear gradient theme
+- ✅ Custom icons and text
+- ✅ Multiple pages with different content
+- ✅ Animated sidebar ↔ drawer transition
+
+## Resize the Window
+
+Try resizing the window to see the smooth animation when the sidebar transforms into a drawer!
+
+- **Desktop mode** (width > 900px): Sidebar visible
+- **Tablet mode** (600px < width < 900px): Drawer mode
+- **Mobile mode** (width < 600px): Drawer mode
+
+## Learn More
+
+For more information and documentation, see the main [README](../README.md).
