@@ -29,6 +29,18 @@ This will run a simpler version with:
 - Minimal setup
 - Easy to understand code
 
+### Color Example
+
+```bash
+cd example
+flutter run -t lib/color_example.dart
+```
+
+This demonstrates the `colorSelectedMenu` parameter:
+- Custom selected icon and text color
+- Simple color configuration
+- Clean example code
+
 ## Features Demonstrated
 
 - ✅ Responsive design (sidebar on desktop, drawer on mobile)
