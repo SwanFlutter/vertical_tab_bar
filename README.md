@@ -41,6 +41,18 @@ This demonstrates the `colorSelectedMenu` parameter:
 - Simple color configuration
 - Clean example code
 
+### Custom Style Example
+
+```bash
+cd example
+flutter run -t lib/custom_style_example.dart
+```
+
+This demonstrates custom text styles for each tab:
+- Individual `textStyle` for each `DrawerListTile`
+- Different fonts, sizes, and colors per tab
+- Merges with theme styles
+
 ## Features Demonstrated
 
 - ✅ Responsive design (sidebar on desktop, drawer on mobile)
