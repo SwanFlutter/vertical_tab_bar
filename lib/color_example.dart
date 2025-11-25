@@ -59,6 +59,8 @@ class ColorExamplePage extends StatelessWidget {
       tabColor: primaryColor.withValues(alpha: 0.1),
       colorMenu: Colors.white,
       backgroundColor: Colors.grey.shade50,
+      dividerColor: primaryColor.withValues(alpha: 0.3),
+      showDivider: true,
       widthTabBar: 240,
       appBarTitle: const Text('مثال استفاده از colorSelectedMenu'),
     );

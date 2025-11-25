@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:vertical_tab_bar/vertical_tab_bar.dart';
 import 'package:vertical_tab_bar/vertical_tab_bar_theme.dart';
+import 'package:vertical_tab_bar_example/color_example.dart';
 
 void main() {
   runApp(const MyApp());
@@ -18,7 +19,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const ExampleHomePage(),
+      home: const ColorExamplePage(),
     );
   }
 }
