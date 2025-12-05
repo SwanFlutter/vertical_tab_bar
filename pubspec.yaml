@@ -1,0 +1,24 @@
+name: vertical_tab_bar
+description: A professional Flutter package for creating vertical tab bars with smooth animations and responsive design. Supports solid colors, gradients, and full customization.
+version: 1.0.0
+homepage: https://github.com/SwanFlutter/vertical_tab_bar
+repository: https://github.com/SwanFlutter/vertical_tab_bar
+issue_tracker: https://github.com/SwanFlutter/vertical_tab_bar/issues
+documentation: https://github.com/SwanFlutter/vertical_tab_bar#readme
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: ">=3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+
+
