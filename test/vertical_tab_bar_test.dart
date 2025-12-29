@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vertical_tab_bar/vertical_tab_bar.dart';
-import 'package:vertical_tab_bar/vertical_tab_bar_theme.dart';
 
 void main() {
   testWidgets('VerticalTabBar renders with tabs and pages in mobile mode', (

@@ -10,6 +10,14 @@ export 'sidebar.dart';
 export 'src/sidebar_item.dart';
 export 'vertical_tab_bar_theme.dart';
 
+typedef VerticalTabBarTabBuilder = Widget Function(
+  BuildContext context,
+  int index,
+  bool isSelected,
+  DrawerListTile item,
+  bool isInDrawer,
+);
+
 /// Enhanced VerticalTabBar with responsive design and advanced theming
 ///
 /// Features:
@@ -23,6 +31,18 @@ class VerticalTabBar extends StatefulWidget {
 
   /// Pages corresponding to each tab
   final List<Widget> pages;
+
+  /// Starting tab index when uncontrolled
+  final int initialIndex;
+
+  /// Current tab index (controlled mode). If set, [initialIndex] is ignored.
+  final int? selectedIndex;
+
+  /// Callback when user selects a tab
+  final ValueChanged<int>? onTabChanged;
+
+  /// Keep pages alive when switching tabs (preserves state)
+  final bool keepAlivePages;
 
   /// Theme configuration (optional)
   final VerticalTabBarTheme? theme;
@@ -93,10 +113,32 @@ class VerticalTabBar extends StatefulWidget {
   /// Actions to display in the AppBar (e.g., language switcher, theme toggle)
   final List<Widget>? appBarActions;
 
+  /// Optional header widget for sidebar mode
+  final Widget? sidebarHeader;
+
+  /// Optional footer widget for sidebar mode
+  final Widget? sidebarFooter;
+
+  /// Optional header widget for drawer mode
+  final Widget? drawerHeader;
+
+  /// Optional footer widget for drawer mode
+  final Widget? drawerFooter;
+
+  /// Optional builder to customize tab content
+  final VerticalTabBarTabBuilder? tabBuilder;
+
+  /// Widget shown when tabs/pages are empty or mismatched
+  final Widget? emptyState;
+
   const VerticalTabBar({
     super.key,
     required this.drawerListTiles,
     required this.pages,
+    this.initialIndex = 0,
+    this.selectedIndex,
+    this.onTabChanged,
+    this.keepAlivePages = false,
     this.theme,
     this.backgroundColor = Colors.white,
     this.widthTabBar = 200,
@@ -120,7 +162,16 @@ class VerticalTabBar extends StatefulWidget {
     this.appBarTitle,
     this.customAppBar,
     this.appBarActions,
-  });
+    this.sidebarHeader,
+    this.sidebarFooter,
+    this.drawerHeader,
+    this.drawerFooter,
+    this.tabBuilder,
+    this.emptyState,
+  }) : assert(
+          drawerListTiles.length == pages.length,
+          'drawerListTiles and pages must have the same length.',
+        );
 
   @override
   VerticalTabBarState createState() => VerticalTabBarState();
@@ -154,16 +205,14 @@ class VerticalTabBar extends StatefulWidget {
 
 class VerticalTabBarState extends State<VerticalTabBar>
     with SingleTickerProviderStateMixin {
-  int selectedIndex = 0;
+  late int _internalIndex;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late AnimationController _scaleController;
 
   @override
   void initState() {
     super.initState();
-    if (widget.drawerListTiles.isNotEmpty) {
-      selectedIndex = 0;
-    }
+    _internalIndex = widget.initialIndex;
 
     // Initialize scale animation controller for subtle bounce effect
     _scaleController = AnimationController(
@@ -178,18 +227,48 @@ class VerticalTabBarState extends State<VerticalTabBar>
     super.dispose();
   }
 
+  int get _maxIndex {
+    final len = widget.drawerListTiles.length < widget.pages.length
+        ? widget.drawerListTiles.length
+        : widget.pages.length;
+    return len - 1;
+  }
+
+  int get _effectiveSelectedIndex {
+    final max = _maxIndex;
+    if (max < 0) return 0;
+    final external = widget.selectedIndex;
+    final raw = external ?? _internalIndex;
+    if (raw < 0) return 0;
+    if (raw > max) return max;
+    return raw;
+  }
+
+  bool get _hasValidContent =>
+      widget.drawerListTiles.isNotEmpty &&
+      widget.pages.isNotEmpty &&
+      widget.drawerListTiles.length == widget.pages.length;
+
   bool _useDrawerMode(double width) =>
       widget.enableDrawerMode && (width < widget.tabletBreakpoint);
 
   void _onTabSelected(int index, {bool closeDrawer = false}) {
-    if (selectedIndex == index) return;
+    final max = _maxIndex;
+    if (max < 0) return;
+    final nextIndex = index < 0 ? 0 : (index > max ? max : index);
+    if (_effectiveSelectedIndex == nextIndex) return;
 
-    setState(() {
-      selectedIndex = index;
-    });
+    if (widget.selectedIndex == null) {
+      setState(() {
+        _internalIndex = nextIndex;
+      });
+    }
 
     // Trigger scale animation for visual feedback
     _scaleController.forward().then((_) => _scaleController.reverse());
+
+    widget.onTabChanged?.call(nextIndex);
+    widget.drawerListTiles[nextIndex].onTap?.call();
 
     if (closeDrawer && _scaffoldKey.currentState?.isDrawerOpen == true) {
       Navigator.of(context).pop();
@@ -264,6 +343,15 @@ class VerticalTabBarState extends State<VerticalTabBar>
     TextStyle unselectedTextStyle,
     VerticalTabBarTheme? effectiveTheme,
   ) {
+    final iconWidget = _buildIconWithOptionalBadge(
+      isSelected: isSelected,
+      tabItem: tabItem,
+      animationDuration: animationDuration,
+      selectedIconColor: selectedIconColor,
+      unselectedIconColor: unselectedIconColor,
+      iconSize: iconSize,
+    );
+
     return AnimatedContainer(
       duration: animationDuration,
       curve: animationCurve,
@@ -273,27 +361,7 @@ class VerticalTabBarState extends State<VerticalTabBar>
         padding: tabPadding,
         child: Row(
           children: [
-            // Icon with animated color
-            AnimatedOpacity(
-              opacity: 1.0,
-              duration: animationDuration,
-              child: IconTheme(
-                data: IconThemeData(
-                  color: _getIconColor(
-                    isSelected: isSelected,
-                    selectedIconColor: selectedIconColor,
-                    unselectedIconColor: unselectedIconColor,
-                    iconColor: tabItem.icon.color,
-                  ),
-                  size: iconSize,
-                ),
-                child: Icon(
-                  tabItem.icon.icon,
-                  // Force the icon to use the color from IconTheme
-                  color: null,
-                ),
-              ),
-            ),
+            iconWidget,
             SizedBox(width: iconTextSpacing),
             // Title with animated style
             Expanded(
@@ -309,15 +377,64 @@ class VerticalTabBarState extends State<VerticalTabBar>
                 child: Text(tabItem.title, overflow: TextOverflow.ellipsis),
               ),
             ),
+            if (tabItem.trailing != null) ...[
+              SizedBox(width: iconTextSpacing),
+              tabItem.trailing!,
+            ],
           ],
         ),
       ),
     );
   }
 
+  Widget _buildIconWithOptionalBadge({
+    required bool isSelected,
+    required DrawerListTile tabItem,
+    required Duration animationDuration,
+    required Color? selectedIconColor,
+    required Color? unselectedIconColor,
+    required double iconSize,
+  }) {
+    Widget icon = AnimatedOpacity(
+      opacity: 1.0,
+      duration: animationDuration,
+      child: IconTheme(
+        data: IconThemeData(
+          color: _getIconColor(
+            isSelected: isSelected,
+            selectedIconColor: selectedIconColor,
+            unselectedIconColor: unselectedIconColor,
+            iconColor: tabItem.icon.color,
+          ),
+          size: iconSize,
+        ),
+        child: Icon(
+          tabItem.icon.icon,
+          color: null,
+        ),
+      ),
+    );
+
+    if (tabItem.badge == null) return icon;
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        icon,
+        PositionedDirectional(
+          top: -4,
+          end: -4,
+          child: tabItem.badge!,
+        ),
+      ],
+    );
+  }
+
   Widget _buildTabItem(int index, {bool isInDrawer = false}) {
-    final isSelected = selectedIndex == index;
+    final currentIndex = _effectiveSelectedIndex;
+    final isSelected = currentIndex == index;
     final tabItem = widget.drawerListTiles[index];
+    final isRtl = Directionality.of(context) == TextDirection.rtl;
 
     // Get theme values or fall back to widget properties
     final effectiveTheme = widget.theme;
@@ -325,10 +442,18 @@ class VerticalTabBarState extends State<VerticalTabBar>
         effectiveTheme?.animationDuration ?? const Duration(milliseconds: 300);
     final animationCurve = effectiveTheme?.animationCurve ?? Curves.easeInOut;
 
-    final selectedDecoration = effectiveTheme?.selectedTabDecoration ??
+    final selectedDecorationBase = effectiveTheme?.selectedTabDecoration ??
         BoxDecoration(color: widget.tabColor);
-    final unselectedDecoration = effectiveTheme?.unselectedTabDecoration ??
+    final unselectedDecorationBase = effectiveTheme?.unselectedTabDecoration ??
         BoxDecoration(color: widget.colorMenu);
+
+    final tabBorderRadius = effectiveTheme?.tabBorderRadius;
+    final selectedDecoration = tabBorderRadius == null
+        ? selectedDecorationBase
+        : selectedDecorationBase.copyWith(borderRadius: tabBorderRadius);
+    final unselectedDecoration = tabBorderRadius == null
+        ? unselectedDecorationBase
+        : unselectedDecorationBase.copyWith(borderRadius: tabBorderRadius);
 
     final indicatorColor = effectiveTheme?.indicatorColor ?? Colors.blueAccent;
     final indicatorWidth =
@@ -342,6 +467,7 @@ class VerticalTabBarState extends State<VerticalTabBar>
           horizontal: widget.horizontalPadding,
           vertical: widget.verticalPadding,
         );
+    final listTilePadding = effectiveTheme?.listTilePadding ?? EdgeInsets.zero;
 
     final selectedIconColor =
         effectiveTheme?.selectedIconColor ?? widget.colorSelectedMenu;
@@ -361,78 +487,96 @@ class VerticalTabBarState extends State<VerticalTabBar>
           fontWeight: FontWeight.normal,
         );
 
+    final indicator = AnimatedContainer(
+      duration: animationDuration,
+      curve: animationCurve,
+      height: isSelected ? indicatorHeight : 0,
+      width: indicatorWidth,
+      decoration: BoxDecoration(
+        color: indicatorColor,
+        borderRadius: BorderRadius.only(
+          topRight: isRtl ? Radius.zero : Radius.circular(indicatorWidth / 2),
+          bottomRight: isRtl ? Radius.zero : Radius.circular(indicatorWidth / 2),
+          topLeft: isRtl ? Radius.circular(indicatorWidth / 2) : Radius.zero,
+          bottomLeft: isRtl ? Radius.circular(indicatorWidth / 2) : Radius.zero,
+        ),
+        boxShadow: isSelected && (effectiveTheme?.enableIndicatorShadow ?? true)
+            ? [
+                BoxShadow(
+                  color: indicatorColor.withValues(alpha: 0.4),
+                  blurRadius: 8,
+                  offset: Offset(isRtl ? -2 : 2, 0),
+                ),
+              ]
+            : null,
+      ),
+    );
+
+    final defaultContent = widget.tabBuilder != null
+        ? AnimatedContainer(
+            duration: animationDuration,
+            curve: animationCurve,
+            height: widget.height,
+            decoration: isSelected ? selectedDecoration : unselectedDecoration,
+            child: Padding(
+              padding: tabPadding,
+              child: widget.tabBuilder!(
+                context,
+                index,
+                isSelected,
+                tabItem,
+                isInDrawer,
+              ),
+            ),
+          )
+        : _buildTabContent(
+            isSelected,
+            tabItem,
+            animationDuration,
+            animationCurve,
+            selectedDecoration,
+            unselectedDecoration,
+            tabPadding,
+            selectedIconColor,
+            unselectedIconColor,
+            iconSize,
+            iconTextSpacing,
+            selectedTextStyle,
+            unselectedTextStyle,
+            effectiveTheme,
+          );
+
+    final content = (effectiveTheme?.enableScaleAnimation ?? true)
+        ? AnimatedScale(
+            scale: isSelected ? 1.0 : 0.98,
+            duration: animationDuration,
+            curve: animationCurve,
+            child: defaultContent,
+          )
+        : defaultContent;
+
+    final selectedElevation = effectiveTheme?.selectedTabElevation;
+
+    final decoratedContent = selectedElevation != null && isSelected
+        ? Material(
+            color: Colors.transparent,
+            elevation: selectedElevation,
+            borderRadius: tabBorderRadius,
+            child: content,
+          )
+        : content;
+
+    final rowChildren = isRtl
+        ? <Widget>[Expanded(child: decoratedContent), indicator]
+        : <Widget>[indicator, Expanded(child: decoratedContent)];
+
     return InkWell(
       onTap: () => _onTabSelected(index, closeDrawer: isInDrawer),
       splashColor: indicatorColor.withValues(alpha: 0.2),
       highlightColor: indicatorColor.withValues(alpha: 0.1),
-      child: Row(
-        children: [
-          // Animated indicator bar with smooth transitions
-          AnimatedContainer(
-            duration: animationDuration,
-            curve: animationCurve,
-            height: isSelected ? indicatorHeight : 0,
-            width: indicatorWidth,
-            decoration: BoxDecoration(
-              color: indicatorColor,
-              borderRadius: BorderRadius.only(
-                topRight: Radius.circular(indicatorWidth / 2),
-                bottomRight: Radius.circular(indicatorWidth / 2),
-              ),
-              boxShadow:
-                  isSelected && (effectiveTheme?.enableIndicatorShadow ?? true)
-                      ? [
-                          BoxShadow(
-                            color: indicatorColor.withValues(alpha: 0.4),
-                            blurRadius: 8,
-                            offset: const Offset(2, 0),
-                          ),
-                        ]
-                      : null,
-            ),
-          ),
-          // Tab content with optional scale animation
-          Expanded(
-            child: (effectiveTheme?.enableScaleAnimation ?? true)
-                ? AnimatedScale(
-                    scale: isSelected ? 1.0 : 0.98,
-                    duration: animationDuration,
-                    curve: animationCurve,
-                    child: _buildTabContent(
-                      isSelected,
-                      tabItem,
-                      animationDuration,
-                      animationCurve,
-                      selectedDecoration,
-                      unselectedDecoration,
-                      tabPadding,
-                      selectedIconColor,
-                      unselectedIconColor,
-                      iconSize,
-                      iconTextSpacing,
-                      selectedTextStyle,
-                      unselectedTextStyle,
-                      effectiveTheme,
-                    ),
-                  )
-                : _buildTabContent(
-                    isSelected,
-                    tabItem,
-                    animationDuration,
-                    animationCurve,
-                    selectedDecoration,
-                    unselectedDecoration,
-                    tabPadding,
-                    selectedIconColor,
-                    unselectedIconColor,
-                    iconSize,
-                    iconTextSpacing,
-                    selectedTextStyle,
-                    unselectedTextStyle,
-                    effectiveTheme,
-                  ),
-          ),
-        ],
+      child: Padding(
+        padding: listTilePadding,
+        child: Row(children: rowChildren),
       ),
     );
   }
@@ -476,19 +620,20 @@ class VerticalTabBarState extends State<VerticalTabBar>
               )
             : null,
       ),
-      child: _buildTabList(),
+      child: Column(
+        children: [
+          if (widget.sidebarHeader != null) widget.sidebarHeader!,
+          Expanded(child: _buildTabList()),
+          if (widget.sidebarFooter != null) widget.sidebarFooter!,
+        ],
+      ),
     );
   }
 
   Widget _buildDrawer() {
-    return Drawer(
-      width: widget.drawerWidth,
-      backgroundColor: widget.theme?.backgroundColor ?? widget.backgroundColor,
-      child: SafeArea(
-        child: Column(
-          children: [
-            if (widget.appBarTitle != null) ...[
-              Padding(
+    final header = widget.drawerHeader ??
+        (widget.appBarTitle != null
+            ? Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: DefaultTextStyle(
                   style: const TextStyle(
@@ -498,10 +643,21 @@ class VerticalTabBarState extends State<VerticalTabBar>
                   ),
                   child: widget.appBarTitle!,
                 ),
-              ),
+              )
+            : null);
+
+    return Drawer(
+      width: widget.drawerWidth,
+      backgroundColor: widget.theme?.backgroundColor ?? widget.backgroundColor,
+      child: SafeArea(
+        child: Column(
+          children: [
+            if (header != null) ...[
+              header,
               const Divider(),
             ],
             Expanded(child: _buildTabList(isInDrawer: true)),
+            if (widget.drawerFooter != null) widget.drawerFooter!,
           ],
         ),
       ),
@@ -513,9 +669,15 @@ class VerticalTabBarState extends State<VerticalTabBar>
       return widget.customAppBar!;
     }
 
+    final currentIndex = _effectiveSelectedIndex;
+    final titleText = widget.drawerListTiles.isNotEmpty &&
+            currentIndex >= 0 &&
+            currentIndex < widget.drawerListTiles.length
+        ? widget.drawerListTiles[currentIndex].title
+        : '';
+
     return AppBar(
-      title: widget.appBarTitle ??
-          Text(widget.drawerListTiles[selectedIndex].title),
+      title: widget.appBarTitle ?? Text(titleText),
       leading: widget.showMenuButton
           ? IconButton(
               icon: const Icon(Icons.menu),
@@ -529,10 +691,115 @@ class VerticalTabBarState extends State<VerticalTabBar>
     );
   }
 
+  Widget _buildEmptyState() {
+    return widget.emptyState ??
+        const Center(
+          child: Text('No tabs to display'),
+        );
+  }
+
+  Widget _buildPages() {
+    final currentIndex = _effectiveSelectedIndex;
+    final animationDuration =
+        widget.theme?.animationDuration ?? const Duration(milliseconds: 400);
+    final animationCurve = widget.theme?.animationCurve ?? Curves.easeInOutCubic;
+    final enableFade = widget.theme?.enableFadeAnimation ?? true;
+    final enableSlide = widget.theme?.enableSlideAnimation ?? true;
+    final isRtl = Directionality.of(context) == TextDirection.rtl;
+
+    if (!widget.keepAlivePages) {
+      return AnimatedSwitcher(
+        duration: animationDuration,
+        switchInCurve: animationCurve,
+        switchOutCurve: animationCurve,
+        transitionBuilder: (Widget child, Animation<double> animation) {
+          Widget result = child;
+
+          if (enableSlide) {
+            final beginDx = isRtl ? -0.03 : 0.03;
+            result = SlideTransition(
+              position: Tween<Offset>(
+                begin: Offset(beginDx, 0),
+                end: Offset.zero,
+              ).animate(
+                CurvedAnimation(
+                  parent: animation,
+                  curve: Curves.easeOutCubic,
+                ),
+              ),
+              child: result,
+            );
+          }
+
+          if (enableFade) {
+            result = FadeTransition(
+              opacity: CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeIn,
+              ),
+              child: result,
+            );
+          }
+
+          return result;
+        },
+        child: KeyedSubtree(
+          key: ValueKey<int>(currentIndex),
+          child: widget.pages[currentIndex],
+        ),
+      );
+    }
+
+    final children = List<Widget>.generate(widget.pages.length, (i) {
+      final active = i == currentIndex;
+      Widget page = KeyedSubtree(
+        key: PageStorageKey<String>('vtb_page_$i'),
+        child: widget.pages[i],
+      );
+
+      if (enableSlide) {
+        final beginDx = isRtl ? -0.03 : 0.03;
+        page = AnimatedSlide(
+          offset: active ? Offset.zero : Offset(beginDx, 0),
+          duration: animationDuration,
+          curve: Curves.easeOutCubic,
+          child: page,
+        );
+      }
+
+      if (enableFade) {
+        page = AnimatedOpacity(
+          opacity: active ? 1.0 : 0.0,
+          duration: animationDuration,
+          curve: Curves.easeInOut,
+          child: page,
+        );
+      }
+
+      return Positioned.fill(
+        child: IgnorePointer(
+          ignoring: !active,
+          child: TickerMode(enabled: active, child: page),
+        ),
+      );
+    });
+
+    return Stack(children: children);
+  }
+
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final useDrawer = _useDrawerMode(width);
+    final isRtl = Directionality.of(context) == TextDirection.rtl;
+
+    if (!_hasValidContent) {
+      return Scaffold(
+        key: _scaffoldKey,
+        backgroundColor: widget.theme?.backgroundColor ?? widget.backgroundColor,
+        body: SafeArea(child: _buildEmptyState()),
+      );
+    }
 
     return Scaffold(
       key: _scaffoldKey,
@@ -550,7 +817,7 @@ class VerticalTabBarState extends State<VerticalTabBar>
               transitionBuilder: (Widget child, Animation<double> animation) {
                 return SlideTransition(
                   position: Tween<Offset>(
-                    begin: const Offset(-1.0, 0.0),
+                    begin: Offset(isRtl ? 1.0 : -1.0, 0.0),
                     end: Offset.zero,
                   ).animate(
                     CurvedAnimation(
@@ -567,52 +834,7 @@ class VerticalTabBarState extends State<VerticalTabBar>
             ),
             // Main content area with animated transitions
             Expanded(
-              child: AnimatedSwitcher(
-                duration: widget.theme?.animationDuration ??
-                    const Duration(milliseconds: 400),
-                switchInCurve:
-                    widget.theme?.animationCurve ?? Curves.easeInOutCubic,
-                switchOutCurve:
-                    widget.theme?.animationCurve ?? Curves.easeInOutCubic,
-                transitionBuilder: (Widget child, Animation<double> animation) {
-                  final enableFade = widget.theme?.enableFadeAnimation ?? true;
-                  final enableSlide =
-                      widget.theme?.enableSlideAnimation ?? true;
-
-                  Widget result = child;
-
-                  if (enableSlide) {
-                    result = SlideTransition(
-                      position: Tween<Offset>(
-                        begin: const Offset(0.03, 0),
-                        end: Offset.zero,
-                      ).animate(
-                        CurvedAnimation(
-                          parent: animation,
-                          curve: Curves.easeOutCubic,
-                        ),
-                      ),
-                      child: result,
-                    );
-                  }
-
-                  if (enableFade) {
-                    result = FadeTransition(
-                      opacity: CurvedAnimation(
-                        parent: animation,
-                        curve: Curves.easeIn,
-                      ),
-                      child: result,
-                    );
-                  }
-
-                  return result;
-                },
-                child: KeyedSubtree(
-                  key: ValueKey<int>(selectedIndex),
-                  child: widget.pages[selectedIndex],
-                ),
-              ),
+              child: _buildPages(),
             ),
           ],
         ),
@@ -632,9 +854,21 @@ class DrawerListTile {
   /// Optional custom text style (deprecated, use theme instead)
   final TextStyle? textStyle;
 
+  /// Optional trailing widget (e.g. chevron, switch, badge)
+  final Widget? trailing;
+
+  /// Optional badge widget (e.g. notification count)
+  final Widget? badge;
+
+  /// Optional callback called after selection
+  final VoidCallback? onTap;
+
   const DrawerListTile({
     required this.title,
     required this.icon,
     this.textStyle,
+    this.trailing,
+    this.badge,
+    this.onTap,
   });
 }

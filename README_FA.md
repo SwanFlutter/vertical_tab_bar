@@ -8,6 +8,10 @@
 - 📱 **Responsive Design** - حالت Drawer برای موبایل و Sidebar برای دسکتاپ
 - 🎭 **تم‌های قدرتمند** - پشتیبانی از رنگ‌های ساده، گرادیانت خطی و شعاعی
 - ⚙️ **قابل تنظیم** - کنترل کامل بر روی ظاهر و رفتار
+- 🧠 **حفظ State صفحات** - امکان نگه داشتن صفحات برای جلوگیری از reset شدن
+- 🎛️ **کنترل‌پذیر** - `selectedIndex` و `onTabChanged` برای مدیریت بیرونی
+- 🧩 **قابلیت‌های تب** - Badge، trailing و `onTap` برای هر تب
+- 🧱 **اسلات‌ها** - Header/Footer برای Sidebar و Drawer
 - 🚀 **بهینه‌سازی شده** - عملکرد سریع و روان
 - 🌐 **RTL Support** - پشتیبانی کامل از زبان‌های راست به چپ
 
@@ -78,6 +82,107 @@ class MyHomePage extends StatelessWidget {
     );
   }
 }
+```
+
+### کنترل تب + حفظ State صفحات
+
+```dart
+class ControlledTabsExample extends StatefulWidget {
+  const ControlledTabsExample({super.key});
+
+  @override
+  State<ControlledTabsExample> createState() => _ControlledTabsExampleState();
+}
+
+class _ControlledTabsExampleState extends State<ControlledTabsExample> {
+  int selectedIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return VerticalTabBar(
+      drawerListTiles: const [
+        DrawerListTile(title: 'خانه', icon: Icon(Icons.home)),
+        DrawerListTile(title: 'پروفایل', icon: Icon(Icons.person)),
+      ],
+      pages: const [
+        Center(child: Text('صفحه خانه')),
+        Center(child: Text('صفحه پروفایل')),
+      ],
+      selectedIndex: selectedIndex,
+      onTabChanged: (i) => setState(() => selectedIndex = i),
+      keepAlivePages: true,
+    );
+  }
+}
+```
+
+### Badge / Trailing / onTap
+
+```dart
+VerticalTabBar(
+  drawerListTiles: [
+    DrawerListTile(
+      title: 'پیام‌ها',
+      icon: const Icon(Icons.message),
+      badge: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+        decoration: BoxDecoration(
+          color: Colors.red,
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: const Text(
+          '12',
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+            height: 1.0,
+          ),
+        ),
+      ),
+      trailing: const Icon(Icons.chevron_left),
+      onTap: () {},
+    ),
+  ],
+  pages: const [Center(child: Text('صفحه پیام‌ها'))],
+)
+```
+
+### Header/Footer + TabBuilder + EmptyState
+
+```dart
+VerticalTabBar(
+  drawerListTiles: myTabs,
+  pages: myPages,
+  sidebarHeader: const Padding(
+    padding: EdgeInsets.all(12),
+    child: Text('Header Sidebar'),
+  ),
+  sidebarFooter: const Padding(
+    padding: EdgeInsets.all(12),
+    child: Text('Footer Sidebar'),
+  ),
+  drawerHeader: const Padding(
+    padding: EdgeInsets.all(12),
+    child: Text('Header Drawer'),
+  ),
+  drawerFooter: const Padding(
+    padding: EdgeInsets.all(12),
+    child: Text('Footer Drawer'),
+  ),
+  emptyState: const Center(child: Text('هیچ تبی وجود ندارد')),
+  tabBuilder: (context, index, isSelected, item, isInDrawer) {
+    final color = isSelected ? Colors.white : Colors.black87;
+    return Row(
+      children: [
+        Icon(item.icon.icon, color: color),
+        const SizedBox(width: 12),
+        Expanded(child: Text(item.title, style: TextStyle(color: color))),
+        if (item.trailing != null) item.trailing!,
+      ],
+    );
+  },
+)
 ```
 
 ### مثال با اکشن‌های AppBar
@@ -338,12 +443,33 @@ VerticalTabBar(
 | `iconSize` | double? | 24 | اندازه آیکون‌ها |
 | `iconTextSpacing` | double | 8 | فاصله بین آیکون و متن |
 | `tabPadding` | EdgeInsets | (12, 8) | padding داخل تب |
+| `listTilePadding` | EdgeInsets | 0 | padding اطراف هر آیتم تب |
 | `animationDuration` | Duration | 300ms | مدت زمان انیمیشن |
 | `animationCurve` | Curve | easeInOut | منحنی انیمیشن |
+| `tabBorderRadius` | BorderRadius? | null | گردی گوشه‌های تب‌ها |
+| `selectedTabElevation` | double? | null | elevation تب انتخاب‌شده |
 | `enableScaleAnimation` | bool | true | فعال/غیرفعال zoom تب |
 | `enableFadeAnimation` | bool | true | فعال/غیرفعال fade صفحات |
 | `enableSlideAnimation` | bool | true | فعال/غیرفعال slide صفحات |
 | `enableIndicatorShadow` | bool | true | فعال/غیرفعال سایه indicator |
+| `dividerColor` | Color? | null | رنگ خط جداکننده کنار sidebar |
+| `tabDividerColor` | Color? | null | رنگ خط بین تب‌ها |
+
+## اجرای مثال کامل
+
+```bash
+cd example
+flutter run -t lib/advanced_features_example.dart
+```
+
+## مثال جدا: Sidebar Widget
+
+برای تست `VerticalTabBar.sidebar()`:
+
+```bash
+cd example
+flutter run -t lib/sidebar_widget_example.dart
+```
 
 ## مثال‌های پیشرفته 🔥
 

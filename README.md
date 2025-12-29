@@ -10,6 +10,10 @@ A professional Flutter package for creating vertical tab bars with smooth animat
 - 📱 **Responsive Design** - Drawer mode for mobile, Sidebar for desktop
 - 🎭 **Powerful Themes** - Support for solid colors, linear and radial gradients
 - ⚙️ **Highly Customizable** - Full control over appearance and behavior
+- 🧠 **State Preservation** - Optional keep-alive pages to preserve state
+- 🎛️ **Controlled / Uncontrolled** - Use `selectedIndex` + `onTabChanged`
+- 🧩 **Tab Extensions** - Badge, trailing widget, and per-tab `onTap`
+- 🧱 **Slots** - Header/Footer for Sidebar and Drawer
 - 🚀 **Optimized Performance** - Fast and smooth operation
 - 🌐 **RTL Support** - Full support for right-to-left languages
 
@@ -82,6 +86,107 @@ class MyHomePage extends StatelessWidget {
 }
 ```
 
+### Controlled + Keep Alive Example
+
+```dart
+class ControlledTabsExample extends StatefulWidget {
+  const ControlledTabsExample({super.key});
+
+  @override
+  State<ControlledTabsExample> createState() => _ControlledTabsExampleState();
+}
+
+class _ControlledTabsExampleState extends State<ControlledTabsExample> {
+  int selectedIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return VerticalTabBar(
+      drawerListTiles: const [
+        DrawerListTile(title: 'Home', icon: Icon(Icons.home)),
+        DrawerListTile(title: 'Profile', icon: Icon(Icons.person)),
+      ],
+      pages: const [
+        Center(child: Text('Home Page')),
+        Center(child: Text('Profile Page')),
+      ],
+      selectedIndex: selectedIndex,
+      onTabChanged: (i) => setState(() => selectedIndex = i),
+      keepAlivePages: true,
+    );
+  }
+}
+```
+
+### Badge / Trailing / onTap Example
+
+```dart
+VerticalTabBar(
+  drawerListTiles: [
+    DrawerListTile(
+      title: 'Messages',
+      icon: const Icon(Icons.message),
+      badge: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+        decoration: BoxDecoration(
+          color: Colors.red,
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: const Text(
+          '12',
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+            height: 1.0,
+          ),
+        ),
+      ),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () {},
+    ),
+  ],
+  pages: const [Center(child: Text('Messages Page'))],
+)
+```
+
+### Slots + Custom Tab Builder Example
+
+```dart
+VerticalTabBar(
+  drawerListTiles: myTabs,
+  pages: myPages,
+  sidebarHeader: const Padding(
+    padding: EdgeInsets.all(12),
+    child: Text('Sidebar Header'),
+  ),
+  sidebarFooter: const Padding(
+    padding: EdgeInsets.all(12),
+    child: Text('Sidebar Footer'),
+  ),
+  drawerHeader: const Padding(
+    padding: EdgeInsets.all(12),
+    child: Text('Drawer Header'),
+  ),
+  drawerFooter: const Padding(
+    padding: EdgeInsets.all(12),
+    child: Text('Drawer Footer'),
+  ),
+  emptyState: const Center(child: Text('No tabs to display')),
+  tabBuilder: (context, index, isSelected, item, isInDrawer) {
+    final color = isSelected ? Colors.white : Colors.black87;
+    return Row(
+      children: [
+        Icon(item.icon.icon, color: color),
+        const SizedBox(width: 12),
+        Expanded(child: Text(item.title, style: TextStyle(color: color))),
+        if (item.trailing != null) item.trailing!,
+      ],
+    );
+  },
+)
+```
+
 ### AppBar Actions Example
 
 Add custom actions to the AppBar (language switcher, theme toggle, etc.):
@@ -143,6 +248,13 @@ VerticalTabBar(
 
 Use the `VerticalTabBar.sidebar()` method for a dedicated sidebar component:
 
+Run:
+
+```bash
+cd example
+flutter run -t lib/sidebar_widget_example.dart
+```
+
 ```dart
 import 'package:flutter/material.dart';
 import 'package:vertical_tab_bar/vertical_tab_bar.dart';
@@ -201,4 +313,13 @@ class MyHomePage extends StatelessWidget {
     );
   }
 }
+```
+
+## Examples
+
+Run the advanced example to try all new features:
+
+```bash
+cd example
+flutter run -t lib/advanced_features_example.dart
 ```

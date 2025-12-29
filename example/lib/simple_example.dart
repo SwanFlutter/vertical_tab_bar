@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:vertical_tab_bar/vertical_tab_bar.dart';
-import 'package:vertical_tab_bar/vertical_tab_bar_theme.dart';
 
 void main() {
   runApp(const SimpleExampleApp());
