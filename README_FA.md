@@ -185,6 +185,36 @@ VerticalTabBar(
 )
 ```
 
+### دکمه‌های عملیاتی (فقط نویگیشن)
+
+از `isAction: true` برای ایجاد دکمه‌ای استفاده کنید که فقط `onTap` را اجرا می‌کند و تب انتخاب‌شده را تغییر نمی‌دهد (مثلاً دکمه "خانه" که به یک مسیر دیگر هدایت می‌کند).
+
+```dart
+VerticalTabBar(
+  initialIndex: 1, // شروع از داشبورد (چون ایندکس 0 دکمه عملیاتی است)
+  drawerListTiles: [
+    // ایندکس 0: دکمه صفحه اصلی (فقط نویگیشن)
+    DrawerListTile(
+      title: 'صفحه اصلی',
+      icon: Icon(Icons.home),
+      onTap: () {
+        Navigator.pushNamed(context, '/home');
+      },
+      isAction: true, // <--- این خط مهم است: باعث می‌شود تب انتخاب نشود
+    ),
+    // ایندکس 1: داشبورد
+    DrawerListTile(
+      title: 'داشبورد',
+      icon: Icon(Icons.dashboard),
+    ),
+  ],
+  pages: [
+    SizedBox(), // ویجت خالی برای دکمه صفحه اصلی
+    DashboardPage(),
+  ],
+)
+```
+
 ### مثال با اکشن‌های AppBar
 
 اضافه کردن اکشن‌های سفارشی به AppBar (تغییر زبان، تغییر تم و غیره):

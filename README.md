@@ -187,6 +187,36 @@ VerticalTabBar(
 )
 ```
 
+### Action Buttons (Navigation Only)
+
+Use `isAction: true` to create a button that triggers `onTap` without changing the selected tab (e.g., a "Home" button that navigates to a different route).
+
+```dart
+VerticalTabBar(
+  initialIndex: 1, // Start at Dashboard (since index 0 is an action)
+  drawerListTiles: [
+    // Index 0: Home Button (Navigation Only)
+    DrawerListTile(
+      title: 'Home',
+      icon: Icon(Icons.home),
+      onTap: () {
+        Navigator.pushNamed(context, '/home');
+      },
+      isAction: true, // <--- Prevents tab selection
+    ),
+    // Index 1: Dashboard
+    DrawerListTile(
+      title: 'Dashboard',
+      icon: Icon(Icons.dashboard),
+    ),
+  ],
+  pages: [
+    SizedBox(), // Placeholder for Home button
+    DashboardPage(),
+  ],
+)
+```
+
 ### AppBar Actions Example
 
 Add custom actions to the AppBar (language switcher, theme toggle, etc.):

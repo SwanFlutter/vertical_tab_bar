@@ -256,6 +256,16 @@ class VerticalTabBarState extends State<VerticalTabBar>
     final max = _maxIndex;
     if (max < 0) return;
     final nextIndex = index < 0 ? 0 : (index > max ? max : index);
+
+    // Check if the target tab is an action button
+    if (widget.drawerListTiles[nextIndex].isAction) {
+      widget.drawerListTiles[nextIndex].onTap?.call();
+      if (closeDrawer && _scaffoldKey.currentState?.isDrawerOpen == true) {
+        Navigator.of(context).pop();
+      }
+      return;
+    }
+
     if (_effectiveSelectedIndex == nextIndex) return;
 
     if (widget.selectedIndex == null) {
@@ -863,6 +873,9 @@ class DrawerListTile {
   /// Optional callback called after selection
   final VoidCallback? onTap;
 
+  /// Whether this tab is an action button (triggers onTap but doesn't change selection)
+  final bool isAction;
+
   const DrawerListTile({
     required this.title,
     required this.icon,
@@ -870,5 +883,6 @@ class DrawerListTile {
     this.trailing,
     this.badge,
     this.onTap,
+    this.isAction = false,
   });
 }
