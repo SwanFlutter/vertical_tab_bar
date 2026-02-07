@@ -293,52 +293,38 @@ class MyHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Row(
-        children: [
-          VerticalTabBar.sidebar(
-            appTitle: 'My App',
-            items: [
-              SidebarItem(
-                icon: Icons.home_outlined,
-                selectedIcon: Icons.home,
-                label: 'Home',
-                isSelected: true,
-                onTap: () {
-                  // Handle selection
-                },
-              ),
-              SidebarItem(
-                icon: Icons.download_outlined,
-                selectedIcon: Icons.download,
-                label: 'Downloads',
-                isSelected: false,
-                onTap: () {
-                  // Handle selection
-                },
-              ),
-              SidebarItem(
-                icon: Icons.settings_outlined,
-                selectedIcon: Icons.settings,
-                label: 'Settings',
-                isSelected: false,
-                onTap: () {
-                  // Handle selection
-                },
-              ),
-            ],
-            primaryColor: Colors.blue,
-            secondaryColor: Colors.purple,
-            initiallyExpanded: true,
-            onExpandedChanged: (isExpanded) {
-              // Handle expansion state change
-            },
+      body: VerticalTabBar.sidebar(
+        appTitle: 'My App',
+        items: [
+          SidebarItem(
+            icon: Icons.home_outlined,
+            selectedIcon: Icons.home,
+            label: 'Home',
+            isSelected: true,
+            onTap: () {},
           ),
-          Expanded(
-            child: Center(
-              child: Text('Main Content'),
-            ),
+          SidebarItem(
+            icon: Icons.download_outlined,
+            selectedIcon: Icons.download,
+            label: 'Downloads',
+            onTap: () {},
+          ),
+          SidebarItem(
+            icon: Icons.settings_outlined,
+            selectedIcon: Icons.settings,
+            label: 'Settings',
+            onTap: () {},
           ),
         ],
+        pages: const [
+          Center(child: Text('Home Page')),
+          Center(child: Text('Downloads Page')),
+          Center(child: Text('Settings Page')),
+        ],
+        primaryColor: Colors.blue,
+        secondaryColor: Colors.purple,
+        initiallyExpanded: true,
+        onExpandedChanged: (isExpanded) {},
       ),
     );
   }
@@ -380,6 +366,10 @@ VerticalTabBar.sidebar(
       onTap: () {},
     ),
   ],
+  pages: const [
+    Center(child: Text('داشبورد')),
+    Center(child: Text('نوبت‌ها')),
+  ],
   // User profile in footer
   userName: 'دکتر سارا احمدی',
   userSubtitle: 'متخصص داخلی',
@@ -407,7 +397,25 @@ VerticalTabBar.sidebar(
   brandLogoLight: 'assets/brand/logo_light.png',
   brandLogoDark: 'assets/brand/logo_dark.png',
   brandLogoOpacity: 0.15, // 0.0 to 1.0 (default: 0.15)
-  items: [...],
+  items: [
+    SidebarItem(
+      icon: Icons.dashboard_outlined,
+      selectedIcon: Icons.dashboard,
+      label: 'Dashboard',
+      onTap: () {},
+      isSelected: true,
+    ),
+    SidebarItem(
+      icon: Icons.analytics_outlined,
+      selectedIcon: Icons.analytics,
+      label: 'Reports',
+      onTap: () {},
+    ),
+  ],
+  pages: const [
+    Center(child: Text('Dashboard Page')),
+    Center(child: Text('Reports Page')),
+  ],
 )
 ```
 

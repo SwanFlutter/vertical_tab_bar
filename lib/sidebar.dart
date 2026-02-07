@@ -73,6 +73,9 @@ class Sidebar extends StatefulWidget {
   /// Logout button text
   final String logoutText;
 
+  /// Pages to display next to the sidebar
+  final List<Widget>? pages;
+
   const Sidebar({
     super.key,
     this.appTitle,
@@ -98,6 +101,7 @@ class Sidebar extends StatefulWidget {
     this.brandLogoLight,
     this.brandLogoDark,
     this.brandLogoOpacity = 0.15,
+    this.pages,
   });
 
   @override
@@ -106,11 +110,34 @@ class Sidebar extends StatefulWidget {
 
 class _SidebarState extends State<Sidebar> {
   late bool _isExpanded;
+  late int _internalIndex;
+
+  int get _maxIndex {
+    final len =
+        (widget.items.length < (widget.pages?.length ?? widget.items.length))
+            ? widget.items.length
+            : (widget.pages?.length ?? widget.items.length);
+    return len - 1;
+  }
+
+  int get _effectiveSelectedIndex {
+    final max = _maxIndex;
+    if (max < 0) return 0;
+    final selectedFromItems =
+        widget.items.indexWhere((e) => e.isSelected == true);
+    final raw = selectedFromItems >= 0 ? selectedFromItems : _internalIndex;
+    if (raw < 0) return 0;
+    if (raw > max) return max;
+    return raw;
+  }
 
   @override
   void initState() {
     super.initState();
     _isExpanded = widget.initiallyExpanded;
+    final selectedFromItems =
+        widget.items.indexWhere((e) => e.isSelected == true);
+    _internalIndex = selectedFromItems >= 0 ? selectedFromItems : 0;
   }
 
   void _toggleSidebar() {
@@ -136,7 +163,7 @@ class _SidebarState extends State<Sidebar> {
     final textPrimary = isDark ? Colors.white : Colors.black87;
     final textSecondary = isDark ? Colors.white70 : Colors.black54;
 
-    return AnimatedContainer(
+    final panel = AnimatedContainer(
       duration: const Duration(milliseconds: 400),
       curve: Curves.easeInOut,
       width: _isExpanded ? 220 : 72,
@@ -205,6 +232,7 @@ class _SidebarState extends State<Sidebar> {
                       textPrimary,
                       textSecondary,
                       theme,
+                      index,
                     );
                   },
                 ),
@@ -226,6 +254,17 @@ class _SidebarState extends State<Sidebar> {
           ),
         ],
       ),
+    );
+    if (widget.pages == null || widget.pages!.isEmpty) {
+      return panel;
+    }
+    return Row(
+      children: [
+        panel,
+        Expanded(
+          child: widget.pages![_effectiveSelectedIndex],
+        ),
+      ],
     );
   }
 
@@ -304,6 +343,7 @@ class _SidebarState extends State<Sidebar> {
     Color textPrimary,
     Color textSecondary,
     ThemeData theme,
+    int index,
   ) {
     final hoverColor = isDark
         ? Colors.white.withValues(alpha: 0.05)
@@ -312,6 +352,9 @@ class _SidebarState extends State<Sidebar> {
     final selectedBgColor = isDark
         ? widget.primaryColor.withValues(alpha: 0.15)
         : widget.primaryColor.withValues(alpha: 0.12);
+    final isSelected = (widget.pages != null && (widget.pages!.isNotEmpty))
+        ? index == _effectiveSelectedIndex
+        : item.isSelected;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
@@ -319,7 +362,14 @@ class _SidebarState extends State<Sidebar> {
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(8),
         child: InkWell(
-          onTap: item.onTap,
+          onTap: () {
+            item.onTap();
+            if (widget.pages != null && (widget.pages!.isNotEmpty)) {
+              setState(() {
+                _internalIndex = index;
+              });
+            }
+          },
           borderRadius: BorderRadius.circular(8),
           hoverColor: hoverColor,
           splashColor: widget.primaryColor.withValues(alpha: 0.12),
@@ -330,7 +380,7 @@ class _SidebarState extends State<Sidebar> {
               vertical: 12,
             ),
             decoration: BoxDecoration(
-              color: item.isSelected ? selectedBgColor : Colors.transparent,
+              color: isSelected ? selectedBgColor : Colors.transparent,
               borderRadius: BorderRadius.circular(8),
             ),
             child: LayoutBuilder(
@@ -342,10 +392,9 @@ class _SidebarState extends State<Sidebar> {
                       : MainAxisAlignment.center,
                   children: [
                     Icon(
-                      item.isSelected ? item.selectedIcon : item.icon,
+                      isSelected ? item.selectedIcon : item.icon,
                       size: 22,
-                      color:
-                          item.isSelected ? widget.primaryColor : textSecondary,
+                      color: isSelected ? widget.primaryColor : textSecondary,
                     ),
                     if (showText) ...[
                       const SizedBox(width: 12),
@@ -353,10 +402,9 @@ class _SidebarState extends State<Sidebar> {
                         child: Text(
                           item.label,
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: item.isSelected
-                                ? widget.primaryColor
-                                : textPrimary,
-                            fontWeight: item.isSelected
+                            color:
+                                isSelected ? widget.primaryColor : textPrimary,
+                            fontWeight: isSelected
                                 ? FontWeight.w600
                                 : FontWeight.normal,
                           ),

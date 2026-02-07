@@ -43,6 +43,73 @@ class _SidebarWithBrandPageState extends State<SidebarWithBrandPage> {
                 brandLogoLight: 'assets/brand/creator_logo.png',
                 brandLogoDark: 'assets/brand/creator_logo_dark.png',
                 brandLogoOpacity: 0.40, // More visible
+                pages: _pages
+                    .map(
+                      (title) => Container(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? const Color(0xFF101922)
+                            : const Color(0xFFF6F7F8),
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.dashboard,
+                                size: 80,
+                                color: const Color(0xFF137FEC)
+                                    .withValues(alpha: 0.3),
+                              ),
+                              const SizedBox(height: 24),
+                              Text(
+                                title,
+                                style: const TextStyle(
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'محتوای صفحه $title',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                              const SizedBox(height: 32),
+                              ElevatedButton.icon(
+                                onPressed: () {
+                                  setState(() {
+                                    _isDarkMode = !_isDarkMode;
+                                  });
+                                },
+                                icon: Icon(_isDarkMode
+                                    ? Icons.light_mode
+                                    : Icons.dark_mode),
+                                label: Text(
+                                    _isDarkMode ? 'حالت روشن' : 'حالت تاریک'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF137FEC),
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                    vertical: 16,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'برند در پس‌زمینه sidebar نمایش داده می‌شود',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[500],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    )
+                    .toList(),
                 items: [
                   SidebarItem(
                     icon: Icons.dashboard_outlined,
@@ -91,69 +158,6 @@ class _SidebarWithBrandPageState extends State<SidebarWithBrandPage> {
                     const SnackBar(content: Text('خروج از سیستم...')),
                   );
                 },
-              ),
-              // Main content
-              Expanded(
-                child: Container(
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? const Color(0xFF101922)
-                      : const Color(0xFFF6F7F8),
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.dashboard,
-                          size: 80,
-                          color: const Color(0xFF137FEC).withValues(alpha: 0.3),
-                        ),
-                        const SizedBox(height: 24),
-                        Text(
-                          _pages[_selectedIndex],
-                          style: const TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'محتوای صفحه ${_pages[_selectedIndex]}',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                        const SizedBox(height: 32),
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            setState(() {
-                              _isDarkMode = !_isDarkMode;
-                            });
-                          },
-                          icon: Icon(
-                              _isDarkMode ? Icons.light_mode : Icons.dark_mode),
-                          label: Text(_isDarkMode ? 'حالت روشن' : 'حالت تاریک'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF137FEC),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 16,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'برند در پس‌زمینه sidebar نمایش داده می‌شود',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[500],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
               ),
             ],
           ),
