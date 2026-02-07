@@ -11,32 +11,26 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Sidebar Example',
+      title: 'Sidebar Collapse Test',
       debugShowCheckedModeBanner: false,
       theme: ThemeData.light(),
       darkTheme: ThemeData.dark(),
-      home: const SidebarExamplePage(),
+      home: const SidebarCollapseTestPage(),
     );
   }
 }
 
-class SidebarExamplePage extends StatefulWidget {
-  const SidebarExamplePage({super.key});
+class SidebarCollapseTestPage extends StatefulWidget {
+  const SidebarCollapseTestPage({super.key});
 
   @override
-  State<SidebarExamplePage> createState() => _SidebarExamplePageState();
+  State<SidebarCollapseTestPage> createState() =>
+      _SidebarCollapseTestPageState();
 }
 
-class _SidebarExamplePageState extends State<SidebarExamplePage> {
+class _SidebarCollapseTestPageState extends State<SidebarCollapseTestPage> {
   int _selectedIndex = 0;
-
-  final List<String> _pages = [
-    'داشبورد',
-    'نوبت‌ها',
-    'بیماران',
-    'گزارش‌ها',
-    'تنظیمات',
-  ];
+  bool _isExpanded = true;
 
   @override
   Widget build(BuildContext context) {
@@ -45,12 +39,18 @@ class _SidebarExamplePageState extends State<SidebarExamplePage> {
       child: Scaffold(
         body: Row(
           children: [
-            // Sidebar with profile and logout
+            // Sidebar with profile and logout - test collapse
             VerticalTabBar.sidebar(
               appTitle: 'مدیک‌پلن',
               logoIcon: Icons.medical_services,
               showHeader: true,
               primaryColor: const Color(0xFF137FEC),
+              initiallyExpanded: _isExpanded,
+              onExpandedChanged: (expanded) {
+                setState(() {
+                  _isExpanded = expanded;
+                });
+              },
               items: [
                 SidebarItem(
                   icon: Icons.dashboard_outlined,
@@ -72,20 +72,6 @@ class _SidebarExamplePageState extends State<SidebarExamplePage> {
                   label: 'بیماران',
                   onTap: () => setState(() => _selectedIndex = 2),
                   isSelected: _selectedIndex == 2,
-                ),
-                SidebarItem(
-                  icon: Icons.analytics_outlined,
-                  selectedIcon: Icons.analytics,
-                  label: 'گزارش‌ها',
-                  onTap: () => setState(() => _selectedIndex = 3),
-                  isSelected: _selectedIndex == 3,
-                ),
-                SidebarItem(
-                  icon: Icons.settings_outlined,
-                  selectedIcon: Icons.settings,
-                  label: 'تنظیمات',
-                  onTap: () => setState(() => _selectedIndex = 4),
-                  isSelected: _selectedIndex == 4,
                 ),
               ],
               // User profile in footer
@@ -110,24 +96,43 @@ class _SidebarExamplePageState extends State<SidebarExamplePage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        Icons.dashboard,
+                        _isExpanded ? Icons.menu_open : Icons.menu,
                         size: 80,
                         color: const Color(0xFF137FEC).withValues(alpha: 0.3),
                       ),
                       const SizedBox(height: 24),
                       Text(
-                        _pages[_selectedIndex],
+                        _isExpanded ? 'Sidebar باز است' : 'Sidebar بسته است',
                         style: const TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 16),
                       Text(
-                        'محتوای صفحه ${_pages[_selectedIndex]}',
+                        'دکمه toggle را در پایین sidebar کلیک کنید',
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.grey[600],
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          setState(() {
+                            _isExpanded = !_isExpanded;
+                          });
+                        },
+                        icon: Icon(_isExpanded ? Icons.close : Icons.menu),
+                        label: Text(
+                            _isExpanded ? 'بستن Sidebar' : 'باز کردن Sidebar'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF137FEC),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 16,
+                          ),
                         ),
                       ),
                     ],

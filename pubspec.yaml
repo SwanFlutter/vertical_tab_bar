@@ -20,5 +20,6 @@ dev_dependencies:
   flutter_lints: ^3.0.0
 
 flutter:
-
-
+  assets:
+    - assets/brand/creator_logo.png
+    - assets/brand/creator_logo_dark.png

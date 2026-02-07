@@ -8,6 +8,7 @@ import 'vertical_tab_bar_theme.dart';
 
 export 'sidebar.dart';
 export 'src/sidebar_item.dart';
+export 'src/widgets/widgets.dart';
 export 'vertical_tab_bar_theme.dart';
 
 typedef VerticalTabBarTabBuilder = Widget Function(
@@ -177,15 +178,29 @@ class VerticalTabBar extends StatefulWidget {
   VerticalTabBarState createState() => VerticalTabBarState();
 
   static Widget sidebar({
-    required String appTitle,
+    String? appTitle,
     required List<SidebarItem> items,
-    IconData logoIcon = Icons.play_arrow_rounded,
+    IconData? logoIcon,
+    bool showHeader = true,
+    Widget? customHeader,
     Color primaryColor = const Color(0xFF0078D4),
     Color? secondaryColor,
     bool initiallyExpanded = true,
     ValueChanged<bool>? onExpandedChanged,
     Color? backgroundColorLight,
     Color? backgroundColorDark,
+    Widget? footer,
+    String? userName,
+    String? userSubtitle,
+    String? userImageUrl,
+    Widget? userAvatar,
+    bool showLogoutButton = false,
+    VoidCallback? onLogout,
+    String logoutText = 'خروج از سیستم',
+    bool showBrandBackground = false,
+    String? brandLogoLight,
+    String? brandLogoDark,
+    double brandLogoOpacity = 0.15,
     Key? key,
   }) {
     return Sidebar(
@@ -193,12 +208,26 @@ class VerticalTabBar extends StatefulWidget {
       appTitle: appTitle,
       items: items,
       logoIcon: logoIcon,
+      showHeader: showHeader,
+      customHeader: customHeader,
       primaryColor: primaryColor,
       secondaryColor: secondaryColor,
       initiallyExpanded: initiallyExpanded,
       onExpandedChanged: onExpandedChanged,
       backgroundColorLight: backgroundColorLight,
       backgroundColorDark: backgroundColorDark,
+      footer: footer,
+      userName: userName,
+      userSubtitle: userSubtitle,
+      userImageUrl: userImageUrl,
+      userAvatar: userAvatar,
+      showLogoutButton: showLogoutButton,
+      onLogout: onLogout,
+      logoutText: logoutText,
+      showBrandBackground: showBrandBackground,
+      brandLogoLight: brandLogoLight,
+      brandLogoDark: brandLogoDark,
+      brandLogoOpacity: brandLogoOpacity,
     );
   }
 }
@@ -506,7 +535,8 @@ class VerticalTabBarState extends State<VerticalTabBar>
         color: indicatorColor,
         borderRadius: BorderRadius.only(
           topRight: isRtl ? Radius.zero : Radius.circular(indicatorWidth / 2),
-          bottomRight: isRtl ? Radius.zero : Radius.circular(indicatorWidth / 2),
+          bottomRight:
+              isRtl ? Radius.zero : Radius.circular(indicatorWidth / 2),
           topLeft: isRtl ? Radius.circular(indicatorWidth / 2) : Radius.zero,
           bottomLeft: isRtl ? Radius.circular(indicatorWidth / 2) : Radius.zero,
         ),
@@ -712,7 +742,8 @@ class VerticalTabBarState extends State<VerticalTabBar>
     final currentIndex = _effectiveSelectedIndex;
     final animationDuration =
         widget.theme?.animationDuration ?? const Duration(milliseconds: 400);
-    final animationCurve = widget.theme?.animationCurve ?? Curves.easeInOutCubic;
+    final animationCurve =
+        widget.theme?.animationCurve ?? Curves.easeInOutCubic;
     final enableFade = widget.theme?.enableFadeAnimation ?? true;
     final enableSlide = widget.theme?.enableSlideAnimation ?? true;
     final isRtl = Directionality.of(context) == TextDirection.rtl;
@@ -806,7 +837,8 @@ class VerticalTabBarState extends State<VerticalTabBar>
     if (!_hasValidContent) {
       return Scaffold(
         key: _scaffoldKey,
-        backgroundColor: widget.theme?.backgroundColor ?? widget.backgroundColor,
+        backgroundColor:
+            widget.theme?.backgroundColor ?? widget.backgroundColor,
         body: SafeArea(child: _buildEmptyState()),
       );
     }

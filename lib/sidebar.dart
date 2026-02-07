@@ -5,10 +5,28 @@ import 'src/sidebar_item.dart';
 /// A reusable and dynamic sidebar widget for Flutter applications.
 class Sidebar extends StatefulWidget {
   /// Application title displayed in the sidebar header.
-  final String appTitle;
+  final String? appTitle;
 
   /// Icon for the application logo.
-  final IconData logoIcon;
+  final IconData? logoIcon;
+
+  /// Show header section (logo and title)
+  final bool showHeader;
+
+  /// Custom header widget (overrides appTitle and logoIcon)
+  final Widget? customHeader;
+
+  /// Show brand logo in background
+  final bool showBrandBackground;
+
+  /// Brand logo path for light mode
+  final String? brandLogoLight;
+
+  /// Brand logo path for dark mode
+  final String? brandLogoDark;
+
+  /// Brand logo opacity (0.0 to 1.0)
+  final double brandLogoOpacity;
 
   /// List of navigation items to display in the sidebar.
   final List<SidebarItem> items;
@@ -31,17 +49,55 @@ class Sidebar extends StatefulWidget {
   /// Background color for the sidebar in dark mode (optional).
   final Color? backgroundColorDark;
 
+  /// Optional footer widget to display at the bottom of the sidebar.
+  final Widget? footer;
+
+  /// User profile name for footer section
+  final String? userName;
+
+  /// User profile subtitle (e.g., role, department)
+  final String? userSubtitle;
+
+  /// User profile image URL
+  final String? userImageUrl;
+
+  /// Custom avatar widget for user profile
+  final Widget? userAvatar;
+
+  /// Show logout button in footer
+  final bool showLogoutButton;
+
+  /// Callback when logout button is pressed
+  final VoidCallback? onLogout;
+
+  /// Logout button text
+  final String logoutText;
+
   const Sidebar({
     super.key,
-    required this.appTitle,
+    this.appTitle,
     required this.items,
-    this.logoIcon = Icons.play_arrow_rounded,
+    this.logoIcon,
+    this.showHeader = true,
+    this.customHeader,
     this.primaryColor = const Color(0xFF0078D4),
     this.secondaryColor,
     this.initiallyExpanded = true,
     this.onExpandedChanged,
     this.backgroundColorLight,
     this.backgroundColorDark,
+    this.footer,
+    this.userName,
+    this.userSubtitle,
+    this.userImageUrl,
+    this.userAvatar,
+    this.showLogoutButton = false,
+    this.onLogout,
+    this.logoutText = 'خروج از سیستم',
+    this.showBrandBackground = false,
+    this.brandLogoLight,
+    this.brandLogoDark,
+    this.brandLogoOpacity = 0.15,
   });
 
   @override
@@ -93,27 +149,74 @@ class _SidebarState extends State<Sidebar> {
       child: Column(
         children: [
           // Header
-          _buildHeader(context, isDark, textPrimary, theme),
+          if (widget.showHeader)
+            widget.customHeader ??
+                _buildHeader(context, isDark, textPrimary, theme),
 
           const SizedBox(height: 8),
 
-          // Navigation Items
+          // Navigation Items with Brand Background
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              itemCount: widget.items.length,
-              itemBuilder: (context, index) {
-                return _buildNavItem(
-                  context,
-                  widget.items[index],
-                  isDark,
-                  textPrimary,
-                  textSecondary,
-                  theme,
-                );
-              },
+            child: Stack(
+              children: [
+                // Brand Background (Fixed near footer)
+                if (widget.showBrandBackground)
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 20, // Near footer
+                    child: Center(
+                      child: Opacity(
+                        opacity: widget.brandLogoOpacity,
+                        child: SizedBox(
+                          width: _isExpanded ? 140 : 50,
+                          height: _isExpanded ? 140 : 50,
+                          child: Image.asset(
+                            isDark
+                                ? (widget.brandLogoDark ??
+                                    'assets/brand/creator_logo_dark.png')
+                                : (widget.brandLogoLight ??
+                                    'assets/brand/creator_logo.png'),
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) {
+                              if (const bool.fromEnvironment(
+                                      'dart.vm.product') ==
+                                  false) {
+                                debugPrint('Brand logo error: $error');
+                              }
+                              return const SizedBox.shrink();
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                // Scrollable Items
+                ListView.builder(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  itemCount: widget.items.length,
+                  itemBuilder: (context, index) {
+                    return _buildNavItem(
+                      context,
+                      widget.items[index],
+                      isDark,
+                      textPrimary,
+                      textSecondary,
+                      theme,
+                    );
+                  },
+                ),
+              ],
             ),
           ),
+
+          // Footer Section
+          if (widget.footer != null)
+            widget.footer!
+          else if (widget.userName != null || widget.showLogoutButton)
+            _buildFooter(context, isDark, textPrimary, borderColor),
 
           // Toggle Button
           _buildToggleButton(
@@ -148,33 +251,34 @@ class _SidebarState extends State<Sidebar> {
                   showText ? MainAxisAlignment.start : MainAxisAlignment.center,
               children: [
                 // Logo
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        widget.primaryColor,
-                        widget.secondaryColor ?? widget.primaryColor,
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+                if (widget.logoIcon != null)
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          widget.primaryColor,
+                          widget.secondaryColor ?? widget.primaryColor,
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    borderRadius: BorderRadius.circular(8),
+                    child: Icon(
+                      widget.logoIcon,
+                      color: Colors.white,
+                      size: 24,
+                    ),
                   ),
-                  child: Icon(
-                    widget.logoIcon,
-                    color: Colors.white,
-                    size: 24,
-                  ),
-                ),
 
                 // App Name
-                if (showText) ...[
+                if (showText && widget.appTitle != null) ...[
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      widget.appTitle,
+                      widget.appTitle!,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: textColor,
@@ -266,6 +370,180 @@ class _SidebarState extends State<Sidebar> {
               },
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFooter(
+      BuildContext context, bool isDark, Color textColor, Color borderColor) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(color: borderColor, width: 1),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // User Profile Section
+          if (widget.userName != null)
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final showText = constraints.maxWidth > 100;
+                final maxAvatarSize =
+                    constraints.maxWidth.clamp(0.0, 40.0).toDouble();
+                return ClipRect(
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      bottom: widget.showLogoutButton ? 16 : 0,
+                    ),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: constraints.maxWidth,
+                      ),
+                      child: SizedBox(
+                        width: constraints.maxWidth,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.max,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox.square(
+                              dimension: maxAvatarSize,
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: _buildUserAvatar(),
+                              ),
+                            ),
+                            if (showText) ...[
+                              const SizedBox(width: 12),
+                              Flexible(
+                                fit: FlexFit.tight,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      widget.userName!,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: textColor,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    if (widget.userSubtitle != null) ...[
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        widget.userSubtitle!,
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: Color(0xFF617589),
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+
+          // Logout Button
+          if (widget.showLogoutButton)
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final showText = constraints.maxWidth > 100;
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Material(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(8),
+                    child: InkWell(
+                      onTap: widget.onLogout,
+                      borderRadius: BorderRadius.circular(8),
+                      hoverColor: Colors.red[100],
+                      child: SizedBox(
+                        width: constraints.maxWidth,
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            vertical: 12,
+                            horizontal: showText ? 12 : 0,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.red[50],
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: showText
+                                ? MainAxisAlignment.start
+                                : MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.logout,
+                                color: Colors.red[500],
+                                size: 20,
+                              ),
+                              if (showText) ...[
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    widget.logoutText,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.red[500],
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUserAvatar() {
+    if (widget.userAvatar != null) return widget.userAvatar!;
+
+    if (widget.userImageUrl != null && widget.userImageUrl!.isNotEmpty) {
+      return CircleAvatar(
+        radius: 20,
+        backgroundImage: NetworkImage(widget.userImageUrl!),
+        backgroundColor: Colors.grey[300],
+      );
+    }
+
+    // Default avatar with first letter
+    final firstLetter = widget.userName != null && widget.userName!.isNotEmpty
+        ? widget.userName![0].toUpperCase()
+        : '?';
+    return CircleAvatar(
+      radius: 20,
+      backgroundColor: widget.primaryColor.withValues(alpha: 0.2),
+      child: Text(
+        firstLetter,
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: widget.primaryColor,
         ),
       ),
     );

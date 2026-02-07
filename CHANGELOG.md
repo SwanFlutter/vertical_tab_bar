@@ -1,74 +1,46 @@
-## 1.0.0
+# Changelog
 
-### 🎉 Initial Release
+All notable changes to this project will be documented in this file.
 
-### New Features
-* ✨ Added `colorSelectedMenu` parameter to customize selected tab icon and text color
-* ✨ Added `dividerColor` parameter to customize the vertical divider color on the right side of sidebar
-* ✨ Added `showDivider` parameter to show/hide the vertical divider (default: true)
-* ✨ Fixed `textStyle` parameter in `DrawerListTile` - now properly applies custom text styles
-* 🎨 Removed horizontal dividers between tabs for cleaner UI
-* 🎨 Added vertical divider on the right side of sidebar to separate it from content
-* 🔧 Custom text styles now merge with theme styles for better flexibility
+## [1.1.0] - 2024-02-07
 
-* ✨ Vertical tab bar with smooth animations
-* 📱 Responsive design (drawer for mobile, sidebar for desktop)
-* 🎨 Multiple theme options (solid, linear gradient, radial gradient)
-* ⚡ Customizable animations with full control
-* 🎯 Highly configurable appearance and behavior
-* 🌐 RTL support
-* 📚 Complete documentation and examples
+### Added - Sidebar Enhancements
 
-### Features
+#### Sidebar Widget
+- **User Profile Section**: Added `userName`, `userSubtitle`, `userImageUrl`, and `userAvatar` properties
+- **Logout Button**: Added `showLogoutButton`, `onLogout`, and `logoutText` properties
+- **Auto Avatar**: Automatically generates avatar from first letter of username if no image provided
+- **Responsive Footer**: Footer adapts to collapsed/expanded state
+- **Brand Background**: Added `showBrandBackground`, `brandLogoLight`, `brandLogoDark`, and `brandLogoOpacity` properties
+  - Brand logo stays fixed in background
+  - Automatically switches between light/dark versions
+  - Items scroll over the brand logo
+  - Customizable opacity (0.0 to 1.0)
 
-#### Animations
-- Smooth tab transitions with scale, fade, and slide effects
-- Animated indicator with shadow support
-- Configurable animation duration and curves
-- Individual animation toggles (scale, fade, slide, shadow)
+#### Helper Widgets
+- **ProfileSection**: Reusable user profile widget for sidebar footer
+- **LogoutButton**: Styled logout button widget
 
-#### Themes
-- `VerticalTabBarTheme.solid()` - Solid color themes
-- `VerticalTabBarTheme.linearGradient()` - Linear gradient themes
-- `VerticalTabBarTheme.radialGradient()` - Radial gradient themes
-- Full customization of colors, text styles, and spacing
-
-#### Responsive Design
-- Automatic drawer mode for mobile devices
-- Sidebar mode for desktop/tablet
-- Configurable breakpoints
-- Custom AppBar support
-
-#### Customization
-- Tab appearance (colors, decorations, padding)
-- Indicator style (width, height, color, shadow)
-- Icon and text styling
-- Animation settings
-- Responsive behavior
+### Changed
+- Enhanced `Sidebar` widget with footer customization
+- Improved responsive behavior for collapsed sidebar
+- Better RTL support for profile section
+- Fixed overflow issues in collapsed state
 
 ### Example
+- Updated `sidebar_example.dart` with profile and logout demo
+- Added `sidebar_with_brand_example.dart` for brand background demo
+- Added `sidebar_collapse_test.dart` for testing collapse behavior
 
-```dart
-VerticalTabBar(
-  drawerListTiles: [
-    DrawerListTile(title: 'Home', icon: Icon(Icons.home)),
-    DrawerListTile(title: 'Profile', icon: Icon(Icons.person)),
-  ],
-  pages: [
-    HomePage(),
-    ProfilePage(),
-  ],
-  theme: VerticalTabBarTheme.linearGradient(
-    gradientColors: [Colors.purple.shade300, Colors.blue.shade300],
-    animationDuration: Duration(milliseconds: 400),
-    animationCurve: Curves.easeInOutCubic,
-  ),
-)
-```
+## [1.0.0] - 2024-01-15
 
-### Documentation
-
-- Complete README in English and Persian (فارسی)
-- Full API documentation
-- Working example app
-- Usage guide with multiple examples
+### Added
+- Initial release
+- Vertical tab bar with responsive design
+- Drawer mode for mobile, Sidebar for desktop
+- Theme support (solid colors, gradients)
+- State preservation with keep-alive pages
+- Controlled/uncontrolled modes
+- Badge and trailing widget support
+- Custom tab builder
+- RTL support

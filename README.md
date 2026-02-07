@@ -353,3 +353,175 @@ Run the advanced example to try all new features:
 cd example
 flutter run -t lib/advanced_features_example.dart
 ```
+
+
+### Sidebar with Profile and Logout
+
+Use the enhanced sidebar with user profile and logout button:
+
+```dart
+VerticalTabBar.sidebar(
+  appTitle: 'مدیک‌پلن',
+  logoIcon: Icons.medical_services,
+  showHeader: true, // Show/hide header section
+  primaryColor: const Color(0xFF137FEC),
+  items: [
+    SidebarItem(
+      icon: Icons.dashboard_outlined,
+      selectedIcon: Icons.dashboard,
+      label: 'داشبورد',
+      onTap: () {},
+      isSelected: true,
+    ),
+    SidebarItem(
+      icon: Icons.calendar_month_outlined,
+      selectedIcon: Icons.calendar_month,
+      label: 'نوبت‌ها',
+      onTap: () {},
+    ),
+  ],
+  // User profile in footer
+  userName: 'دکتر سارا احمدی',
+  userSubtitle: 'متخصص داخلی',
+  userImageUrl: 'https://example.com/avatar.jpg',
+  showLogoutButton: true,
+  logoutText: 'خروج از سیستم',
+  onLogout: () {
+    // Handle logout
+  },
+)
+```
+
+### Sidebar with Brand Background
+
+Add your brand logo as a fixed background:
+
+```dart
+VerticalTabBar.sidebar(
+  appTitle: 'My App',
+  logoIcon: Icons.medical_services,
+  showHeader: true,
+  primaryColor: const Color(0xFF137FEC),
+  // Brand background
+  showBrandBackground: true,
+  brandLogoLight: 'assets/brand/logo_light.png',
+  brandLogoDark: 'assets/brand/logo_dark.png',
+  brandLogoOpacity: 0.15, // 0.0 to 1.0 (default: 0.15)
+  items: [...],
+)
+```
+
+The brand logo will:
+- Stay fixed near the footer (bottom of navigation items section)
+- Automatically switch between light/dark versions based on theme
+- Allow items to scroll over it
+- Be displayed with customizable opacity (default 0.15 for better visibility)
+- Adapt size based on sidebar state (140x140 when expanded, 50x50 when collapsed)
+
+### Sidebar Header Options
+
+```dart
+// 1. With both logo and title
+VerticalTabBar.sidebar(
+  appTitle: 'My App',
+  logoIcon: Icons.medical_services,
+  showHeader: true,
+  items: [...],
+)
+
+// 2. With only logo
+VerticalTabBar.sidebar(
+  logoIcon: Icons.medical_services,
+  showHeader: true,
+  items: [...],
+)
+
+// 3. With only title
+VerticalTabBar.sidebar(
+  appTitle: 'My App',
+  showHeader: true,
+  items: [...],
+)
+
+// 4. Without header
+VerticalTabBar.sidebar(
+  showHeader: false,
+  items: [...],
+)
+
+// 5. With custom header widget
+VerticalTabBar.sidebar(
+  showHeader: true,
+  customHeader: Container(
+    height: 80,
+    child: Center(
+      child: Text('Custom Header'),
+    ),
+  ),
+  items: [...],
+)
+```
+
+## Sidebar Features 🎯
+
+The enhanced `VerticalTabBar.sidebar()` provides a complete sidebar solution:
+
+### Header Customization
+- **Optional Header**: Show/hide with `showHeader` boolean
+- **Flexible Content**: Use `appTitle`, `logoIcon`, or both
+- **Custom Widget**: Replace with `customHeader` for full control
+- **Gradient Logo**: Automatic gradient from `primaryColor` and `secondaryColor`
+
+### Navigation Items
+- **Smooth Animations**: Beautiful transitions between selected states
+- **Icon States**: Different icons for selected/unselected states
+- **Scrollable**: Items scroll smoothly over brand background
+- **Responsive**: Adapts to collapsed/expanded states
+
+### Brand Background
+- **Fixed Position**: Logo stays near footer while items scroll
+- **Theme Aware**: Automatically switches between light/dark logos
+- **Customizable**: Control size, opacity, and position
+- **Non-intrusive**: Items remain fully visible and interactive
+
+### Footer Section
+- **User Profile**: Display name, subtitle, and avatar
+- **Auto Avatar**: Generates avatar from first letter if no image
+- **Logout Button**: Always visible with red background
+- **Responsive**: Adapts to sidebar width
+
+### Responsive Behavior
+- **Collapsible**: Toggle between expanded (220px) and collapsed (72px)
+- **Smart Layout**: Content adapts to available width
+- **No Overflow**: All elements properly constrained
+- **Smooth Transitions**: 400ms animations with easeInOut curve
+
+## Complete Dashboard Example
+
+Check out the complete sidebar example:
+
+```bash
+cd example
+flutter run -t lib/sidebar_example.dart
+```
+
+Test sidebar collapse behavior:
+
+```bash
+cd example
+flutter run -t lib/sidebar_collapse_test.dart
+```
+
+Test different header configurations:
+
+```bash
+cd example
+flutter run -t lib/sidebar_custom_header_example.dart
+```
+
+Test sidebar with brand background:
+
+```bash
+cd example
+flutter run -t lib/sidebar_with_brand_example.dart
+```
