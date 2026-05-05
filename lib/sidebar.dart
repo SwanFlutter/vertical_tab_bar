@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'src/sidebar_item.dart';
+import 'src/widgets/marquee_text.dart';
 
 /// A reusable and dynamic sidebar widget for Flutter applications.
 class Sidebar extends StatefulWidget {
@@ -111,6 +112,7 @@ class Sidebar extends StatefulWidget {
 class _SidebarState extends State<Sidebar> {
   late bool _isExpanded;
   late int _internalIndex;
+  int _hoveredIndex = -1;
 
   int get _maxIndex {
     final len =
@@ -355,6 +357,7 @@ class _SidebarState extends State<Sidebar> {
     final isSelected = (widget.pages != null && (widget.pages!.isNotEmpty))
         ? index == _effectiveSelectedIndex
         : item.isSelected;
+    final isHovered = _hoveredIndex == index;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
@@ -369,6 +372,11 @@ class _SidebarState extends State<Sidebar> {
                 _internalIndex = index;
               });
             }
+          },
+          onHover: (value) {
+            setState(() {
+              _hoveredIndex = value ? index : -1;
+            });
           },
           borderRadius: BorderRadius.circular(8),
           hoverColor: hoverColor,
@@ -399,17 +407,19 @@ class _SidebarState extends State<Sidebar> {
                     if (showText) ...[
                       const SizedBox(width: 12),
                       Expanded(
-                        child: Text(
-                          item.label,
+                        child: MarqueeText(
+                          text: item.label,
+                          isHovered: isHovered,
+                          isSelected: isSelected,
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color:
-                                isSelected ? widget.primaryColor : textPrimary,
-                            fontWeight: isSelected
-                                ? FontWeight.w600
-                                : FontWeight.normal,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
+                                color: isSelected
+                                    ? widget.primaryColor
+                                    : textPrimary,
+                                fontWeight: isSelected
+                                    ? FontWeight.w600
+                                    : FontWeight.normal,
+                              ) ??
+                              const TextStyle(),
                         ),
                       ),
                     ],
@@ -571,19 +581,12 @@ class _SidebarState extends State<Sidebar> {
   Widget _buildUserAvatar() {
     if (widget.userAvatar != null) return widget.userAvatar!;
 
-    if (widget.userImageUrl != null && widget.userImageUrl!.isNotEmpty) {
-      return CircleAvatar(
-        radius: 20,
-        backgroundImage: NetworkImage(widget.userImageUrl!),
-        backgroundColor: Colors.grey[300],
-      );
-    }
-
-    // Default avatar with first letter
+    // آواتار پیش‌فرض با حرف اول نام
     final firstLetter = widget.userName != null && widget.userName!.isNotEmpty
         ? widget.userName![0].toUpperCase()
         : '?';
-    return CircleAvatar(
+
+    final fallbackAvatar = CircleAvatar(
       radius: 20,
       backgroundColor: widget.primaryColor.withValues(alpha: 0.2),
       child: Text(
@@ -595,6 +598,26 @@ class _SidebarState extends State<Sidebar> {
         ),
       ),
     );
+
+    if (widget.userImageUrl != null && widget.userImageUrl!.isNotEmpty) {
+      return ClipOval(
+        child: Image.network(
+          widget.userImageUrl!,
+          width: 40,
+          height: 40,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return fallbackAvatar;
+          },
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return fallbackAvatar;
+          },
+        ),
+      );
+    }
+
+    return fallbackAvatar;
   }
 
   Widget _buildToggleButton(

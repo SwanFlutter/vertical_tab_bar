@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'sidebar.dart';
 import 'src/sidebar_item.dart';
+import 'src/widgets/marquee_text.dart';
 import 'vertical_tab_bar_theme.dart';
 
 export 'sidebar.dart';
@@ -239,6 +240,7 @@ class VerticalTabBarState extends State<VerticalTabBar>
   late int _internalIndex;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late AnimationController _scaleController;
+  int _hoveredIndex = -1;
 
   @override
   void initState() {
@@ -383,6 +385,7 @@ class VerticalTabBarState extends State<VerticalTabBar>
     TextStyle selectedTextStyle,
     TextStyle unselectedTextStyle,
     VerticalTabBarTheme? effectiveTheme,
+    bool isHovered,
   ) {
     final iconWidget = _buildIconWithOptionalBadge(
       isSelected: isSelected,
@@ -404,7 +407,7 @@ class VerticalTabBarState extends State<VerticalTabBar>
           children: [
             iconWidget,
             SizedBox(width: iconTextSpacing),
-            // Title with animated style
+            // Title with marquee support
             Expanded(
               child: AnimatedDefaultTextStyle(
                 duration: animationDuration,
@@ -415,7 +418,17 @@ class VerticalTabBarState extends State<VerticalTabBar>
                   customStyle: tabItem.textStyle,
                   isSelected: isSelected,
                 ),
-                child: Text(tabItem.title, overflow: TextOverflow.ellipsis),
+                child: MarqueeText(
+                  text: tabItem.title,
+                  isHovered: isHovered,
+                  isSelected: isSelected,
+                  style: _mergeTextStyle(
+                    baseStyle:
+                        isSelected ? selectedTextStyle : unselectedTextStyle,
+                    customStyle: tabItem.textStyle,
+                    isSelected: isSelected,
+                  ),
+                ),
               ),
             ),
             if (tabItem.trailing != null) ...[
@@ -476,6 +489,7 @@ class VerticalTabBarState extends State<VerticalTabBar>
     final isSelected = currentIndex == index;
     final tabItem = widget.drawerListTiles[index];
     final isRtl = Directionality.of(context) == TextDirection.rtl;
+    final isHovered = _hoveredIndex == index;
 
     // Get theme values or fall back to widget properties
     final effectiveTheme = widget.theme;
@@ -586,6 +600,7 @@ class VerticalTabBarState extends State<VerticalTabBar>
             selectedTextStyle,
             unselectedTextStyle,
             effectiveTheme,
+            isHovered,
           );
 
     final content = (effectiveTheme?.enableScaleAnimation ?? true)
@@ -614,6 +629,11 @@ class VerticalTabBarState extends State<VerticalTabBar>
 
     return InkWell(
       onTap: () => _onTabSelected(index, closeDrawer: isInDrawer),
+      onHover: (value) {
+        setState(() {
+          _hoveredIndex = value ? index : -1;
+        });
+      },
       splashColor: indicatorColor.withValues(alpha: 0.2),
       highlightColor: indicatorColor.withValues(alpha: 0.1),
       child: Padding(

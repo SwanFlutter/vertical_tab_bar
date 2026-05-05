@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const SidebarWithBrandPage(),
+      home: const ExampleHomePage(),
     );
   }
 }
@@ -32,7 +32,7 @@ class ExampleHomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     // Define tabs
     final tabs = [
-      const DrawerListTile(title: 'Home', icon: Icon(Icons.home)),
+      const DrawerListTile(title: 'داشبورد مدیریتی و کنترل مرکزی سیستم مدیک‌پلن', icon: Icon(Icons.home)),
       const DrawerListTile(title: 'Profile', icon: Icon(Icons.person)),
       const DrawerListTile(title: 'Settings', icon: Icon(Icons.settings)),
       const DrawerListTile(title: 'Messages', icon: Icon(Icons.message)),
