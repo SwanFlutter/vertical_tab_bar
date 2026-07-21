@@ -10,6 +10,7 @@
 - ⚙️ **قابل تنظیم** - کنترل کامل بر روی ظاهر و رفتار
 - 🧠 **حفظ State صفحات** - امکان نگه داشتن صفحات برای جلوگیری از reset شدن
 - 🎛️ **کنترل‌پذیر** - `selectedIndex` و `onTabChanged` برای مدیریت بیرونی
+- 🔴 **Badge روی تب‌ها** - ویجت `TabBadge` با حالت شمارنده، نقطه و سفارشی + `badgeBuilder` برای آپدیت زنده
 - 🧩 **قابلیت‌های تب** - Badge، trailing و `onTap` برای هر تب
 - 🧱 **اسلات‌ها** - Header/Footer برای Sidebar و Drawer
 - 🚀 **بهینه‌سازی شده** - عملکرد سریع و روان
@@ -118,35 +119,94 @@ class _ControlledTabsExampleState extends State<ControlledTabsExample> {
 
 ### Badge / Trailing / onTap
 
+روش قدیمی (Container دستی) هنوز کار می‌کند، اما ویجت جدید `TabBadge` تمیزتر و راحت‌تر است:
+
 ```dart
 VerticalTabBar(
   drawerListTiles: [
+    // Badge شمارنده ساده
     DrawerListTile(
       title: 'پیام‌ها',
       icon: const Icon(Icons.message),
-      badge: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-        decoration: BoxDecoration(
-          color: Colors.red,
-          borderRadius: BorderRadius.circular(999),
-        ),
-        child: const Text(
-          '12',
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-            height: 1.0,
-          ),
-        ),
+      badge: TabBadge(count: 5),
+    ),
+    // Badge نقطه‌ای (بدون عدد)
+    DrawerListTile(
+      title: 'پروفایل',
+      icon: const Icon(Icons.person),
+      badge: TabBadge.dot(color: Colors.green),
+    ),
+    // Badge با ویجت دلخواه
+    DrawerListTile(
+      title: 'تنظیمات',
+      icon: const Icon(Icons.settings),
+      badge: TabBadge.custom(
+        child: const Icon(Icons.star, size: 8, color: Colors.white),
+        color: Colors.orange,
       ),
-      trailing: const Icon(Icons.chevron_left),
-      onTap: () {},
     ),
   ],
-  pages: const [Center(child: Text('صفحه پیام‌ها'))],
+  pages: const [
+    Center(child: Text('پیام‌ها')),
+    Center(child: Text('پروفایل')),
+    Center(child: Text('تنظیمات')),
+  ],
 )
 ```
+
+### Badge زنده با `badgeBuilder`
+
+وقتی تعداد badge از state زنده می‌آید (stream، setState و غیره) از `badgeBuilder` استفاده کنید.
+این builder هر بار که ویجت rebuild می‌شود صدا زده می‌شود، پس همیشه آخرین مقدار را نشان می‌دهد.
+برای مخفی کردن badge، مقدار `null` برگردانید.
+
+```dart
+class _MyPageState extends State<MyPage> {
+  int _unread = 4;
+
+  @override
+  Widget build(BuildContext context) {
+    return VerticalTabBar(
+      drawerListTiles: [
+        DrawerListTile(
+          title: 'پیام‌ها',
+          icon: const Icon(Icons.message),
+          // badgeBuilder نسبت به badge اولویت دارد
+          badgeBuilder: (context) => _unread > 0
+              ? TabBadge(count: _unread, color: Colors.red)
+              : null,
+        ),
+      ],
+      pages: [
+        ElevatedButton(
+          onPressed: () => setState(() => _unread = 0),
+          child: const Text('همه خوانده شد'),
+        ),
+      ],
+    );
+  }
+}
+```
+
+### مرجع `TabBadge`
+
+| سازنده | توضیح |
+|---|---|
+| `TabBadge(count: n)` | نمایش عدد — بالای `maxCount` نمایش `99+` |
+| `TabBadge.dot()` | نقطه کوچک بدون عدد — مناسب برای حالت "آپدیت دارد" |
+| `TabBadge.custom(child: w)` | هر ویجتی داخل دایره badge |
+
+| پارامتر | نوع | پیشفرض | توضیح |
+|---|---|---|---|
+| `count` | `int?` | — | عدد نمایشی |
+| `maxCount` | `int` | `99` | حداکثر قبل از نمایش `99+` |
+| `color` | `Color?` | `Colors.red` | رنگ پس‌زمینه badge |
+| `textColor` | `Color?` | `Colors.white` | رنگ متن عدد |
+| `size` | `double` | `18` | قطر badge |
+| `fontSize` | `double?` | `size * 0.55` | اندازه فونت عدد |
+| `showDot` | `bool` | `false` | اجبار به حالت نقطه |
+| `borderColor` | `Color?` | `Colors.white` | رنگ border دور badge |
+| `borderWidth` | `double` | `1.5` | ضخامت border |
 
 ### Header/Footer + TabBuilder + EmptyState
 
@@ -583,6 +643,76 @@ VerticalTabBar(
     enableFadeAnimation: true,
   ),
 )
+```
+
+### مثال 3: اپلیکیشن چت با Badge زنده
+
+```dart
+class ChatAppState extends State<ChatApp> {
+  int _msgCount = 3;
+  int _notifCount = 100; // بالای maxCount — نمایش "99+"
+
+  @override
+  Widget build(BuildContext context) {
+    return VerticalTabBar(
+      drawerListTiles: [
+        const DrawerListTile(
+          title: 'خانه',
+          icon: Icon(Icons.home),
+          // بدون badge
+        ),
+        DrawerListTile(
+          title: 'پیام‌ها',
+          icon: const Icon(Icons.message),
+          badgeBuilder: (context) => _msgCount > 0
+              ? TabBadge(count: _msgCount, color: Colors.red)
+              : null,
+        ),
+        DrawerListTile(
+          title: 'نوتیف‌ها',
+          icon: const Icon(Icons.notifications),
+          badgeBuilder: (context) => _notifCount > 0
+              ? TabBadge(
+                  count: _notifCount,
+                  color: Colors.deepPurple,
+                  maxCount: 99, // بالای 99 میشه "99+"
+                )
+              : null,
+        ),
+        const DrawerListTile(
+          title: 'پروفایل',
+          icon: Icon(Icons.person),
+          // نقطه سبز = آنلاین
+          badge: TabBadge.dot(color: Colors.green),
+        ),
+      ],
+      pages: [
+        const Center(child: Text('خانه')),
+        Center(
+          child: ElevatedButton(
+            onPressed: () => setState(() => _msgCount = 0),
+            child: const Text('پاک کردن badge پیام‌ها'),
+          ),
+        ),
+        Center(
+          child: ElevatedButton(
+            onPressed: () => setState(() => _notifCount = 0),
+            child: const Text('پاک کردن badge نوتیف‌ها'),
+          ),
+        ),
+        const Center(child: Text('پروفایل')),
+      ],
+      theme: VerticalTabBarTheme.linearGradient(
+        gradientColors: [Colors.blue.shade400, Colors.indigo.shade400],
+        selectedIconColor: Colors.white,
+        selectedTextStyle: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+}
 ```
 
 ## نکات بهینه‌سازی ⚡

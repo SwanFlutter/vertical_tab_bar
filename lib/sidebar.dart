@@ -264,9 +264,69 @@ class _SidebarState extends State<Sidebar> {
       children: [
         panel,
         Expanded(
-          child: widget.pages![_effectiveSelectedIndex],
+          child: _buildPages(),
         ),
       ],
+    );
+  }
+
+  Widget _buildPages() {
+    final currentIndex = _effectiveSelectedIndex;
+    final pages = widget.pages!;
+
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 220),
+      switchInCurve: Curves.easeOutCubic,
+      switchOutCurve: Curves.easeIn,
+      // صفحه ورودی بالای صفحه خروجی — جلوگیری از flash سفید
+      layoutBuilder: (currentChild, previousChildren) {
+        return Stack(
+          alignment: Alignment.topLeft,
+          fit: StackFit.expand,
+          children: [
+            ...previousChildren,
+            if (currentChild != null) currentChild,
+          ],
+        );
+      },
+      transitionBuilder: (Widget child, Animation<double> animation) {
+        final isEntering = child.key == ValueKey<int>(currentIndex);
+
+        Widget result = child;
+
+        if (isEntering) {
+          // صفحه ورودی: slide خفیف + fade-in
+          result = SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0.015, 0),
+              end: Offset.zero,
+            ).animate(
+              CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+            ),
+            child: FadeTransition(
+              opacity: CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOut,
+              ),
+              child: result,
+            ),
+          );
+        } else {
+          // صفحه خروجی: فقط fade-out سریع
+          result = FadeTransition(
+            opacity: Tween<double>(begin: 0.0, end: 1.0).animate(
+              CurvedAnimation(parent: animation, curve: Curves.easeIn),
+            ),
+            child: result,
+          );
+        }
+
+        return result;
+      },
+      child: KeyedSubtree(
+        key: ValueKey<int>(currentIndex),
+        child: pages[currentIndex],
+      ),
     );
   }
 

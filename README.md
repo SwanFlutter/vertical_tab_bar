@@ -12,6 +12,7 @@ A professional Flutter package for creating vertical tab bars with smooth animat
 - ⚙️ **Highly Customizable** - Full control over appearance and behavior
 - 🧠 **State Preservation** - Optional keep-alive pages to preserve state
 - 🎛️ **Controlled / Uncontrolled** - Use `selectedIndex` + `onTabChanged`
+- 🔴 **Tab Badges** - `TabBadge` widget with count, dot, and custom modes + live `badgeBuilder`
 - 🧩 **Tab Extensions** - Badge, trailing widget, and per-tab `onTap`
 - 🧱 **Slots** - Header/Footer for Sidebar and Drawer
 - 🚀 **Optimized Performance** - Fast and smooth operation
@@ -120,35 +121,94 @@ class _ControlledTabsExampleState extends State<ControlledTabsExample> {
 
 ### Badge / Trailing / onTap Example
 
+The old approach (raw Container) still works, but the new `TabBadge` widget is cleaner:
+
 ```dart
 VerticalTabBar(
   drawerListTiles: [
+    // Static count badge
     DrawerListTile(
       title: 'Messages',
       icon: const Icon(Icons.message),
-      badge: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-        decoration: BoxDecoration(
-          color: Colors.red,
-          borderRadius: BorderRadius.circular(999),
-        ),
-        child: const Text(
-          '12',
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-            height: 1.0,
-          ),
-        ),
+      badge: TabBadge(count: 5),
+    ),
+    // Static dot badge (no number)
+    DrawerListTile(
+      title: 'Profile',
+      icon: const Icon(Icons.person),
+      badge: TabBadge.dot(color: Colors.green),
+    ),
+    // Custom widget inside badge
+    DrawerListTile(
+      title: 'Settings',
+      icon: const Icon(Icons.settings),
+      badge: TabBadge.custom(
+        child: const Icon(Icons.star, size: 8, color: Colors.white),
+        color: Colors.orange,
       ),
-      trailing: const Icon(Icons.chevron_right),
-      onTap: () {},
     ),
   ],
-  pages: const [Center(child: Text('Messages Page'))],
+  pages: const [
+    Center(child: Text('Messages')),
+    Center(child: Text('Profile')),
+    Center(child: Text('Settings')),
+  ],
 )
 ```
+
+### Live Badge with `badgeBuilder`
+
+Use `badgeBuilder` when the badge count comes from live state (streams, `setState`, etc.).
+The builder is called on every rebuild, so it always reflects the latest value.
+Return `null` to hide the badge.
+
+```dart
+class _MyPageState extends State<MyPage> {
+  int _unread = 4;
+
+  @override
+  Widget build(BuildContext context) {
+    return VerticalTabBar(
+      drawerListTiles: [
+        DrawerListTile(
+          title: 'Messages',
+          icon: const Icon(Icons.message),
+          // badgeBuilder takes priority over badge
+          badgeBuilder: (context) => _unread > 0
+              ? TabBadge(count: _unread, color: Colors.red)
+              : null,
+        ),
+      ],
+      pages: [
+        ElevatedButton(
+          onPressed: () => setState(() => _unread = 0),
+          child: const Text('Mark all read'),
+        ),
+      ],
+    );
+  }
+}
+```
+
+### `TabBadge` Reference
+
+| Constructor | Description |
+|---|---|
+| `TabBadge(count: n)` | Shows number. Displays `99+` when count exceeds `maxCount` |
+| `TabBadge.dot()` | Small dot, no number — good for "has update" states |
+| `TabBadge.custom(child: w)` | Any widget inside the badge circle |
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `count` | `int?` | — | Number to display |
+| `maxCount` | `int` | `99` | Max before showing `99+` |
+| `color` | `Color?` | `Colors.red` | Badge background color |
+| `textColor` | `Color?` | `Colors.white` | Count text color |
+| `size` | `double` | `18` | Badge diameter |
+| `fontSize` | `double?` | `size * 0.55` | Count font size |
+| `showDot` | `bool` | `false` | Force dot mode |
+| `borderColor` | `Color?` | `Colors.white` | Border around badge |
+| `borderWidth` | `double` | `1.5` | Border thickness |
 
 ### Slots + Custom Tab Builder Example
 
@@ -469,6 +529,78 @@ VerticalTabBar.sidebar(
   items: [...],
 )
 ```
+
+## Tab Badge 🔴
+
+### Overview
+
+`TabBadge` is a dedicated badge widget designed for tab items. It supports three modes and is fully customizable.
+
+```dart
+// Count badge — auto-widens for multi-digit numbers
+TabBadge(count: 5)
+TabBadge(count: 120, maxCount: 99) // shows "99+"
+
+// Dot badge — no number, just a colored circle
+TabBadge.dot(color: Colors.green)
+
+// Custom badge — any widget inside the badge circle
+TabBadge.custom(
+  child: Icon(Icons.star, size: 8, color: Colors.white),
+  color: Colors.orange,
+  size: 16,
+)
+```
+
+### Static vs. Live Badges
+
+Use `badge` for static values (always the same):
+
+```dart
+DrawerListTile(
+  title: 'Online',
+  icon: Icon(Icons.circle),
+  badge: TabBadge.dot(color: Colors.green),
+)
+```
+
+Use `badgeBuilder` when the value comes from state — it is called on every rebuild:
+
+```dart
+DrawerListTile(
+  title: 'Messages',
+  icon: Icon(Icons.message),
+  badgeBuilder: (context) => unreadCount > 0
+      ? TabBadge(count: unreadCount)
+      : null, // null hides the badge
+)
+```
+
+When both `badge` and `badgeBuilder` are set, `badgeBuilder` takes priority.
+
+### `TabBadge` Parameters
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `count` | `int?` | — | Number to display |
+| `maxCount` | `int` | `99` | Max before showing `99+` |
+| `color` | `Color?` | `Colors.red` | Badge background color |
+| `textColor` | `Color?` | `Colors.white` | Count text color |
+| `size` | `double` | `18` | Badge diameter |
+| `fontSize` | `double?` | `size * 0.55` | Count font size |
+| `showDot` | `bool` | `false` | Force dot mode |
+| `child` | `Widget?` | — | Custom child (custom mode only) |
+| `borderColor` | `Color?` | `Colors.white` | Border color around badge |
+| `borderWidth` | `double` | `1.5` | Border thickness |
+
+### `DrawerListTile` Badge Parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `badge` | `Widget?` | Static badge widget (any widget, not just `TabBadge`) |
+| `badgeBuilder` | `Widget? Function(BuildContext)?` | Dynamic builder — called on every rebuild, return `null` to hide |
+
+---
 
 ## Sidebar Features 🎯
 

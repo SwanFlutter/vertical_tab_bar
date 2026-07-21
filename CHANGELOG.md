@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.0] - 2026-07-21
+
+### Added
+
+#### Badge Support for Tabs
+- **`TabBadge` widget**: New dedicated badge widget in `src/widgets/tab_badge.dart`
+  - `TabBadge(count: n)` — شمارنده با اعداد، برای تعداد بالای `maxCount` نمایش `99+` می‌دهد
+  - `TabBadge.dot()` — نقطه ساده بدون عدد (مناسب برای نشان دادن وضعیت)
+  - `TabBadge.custom(child: ...)` — ویجت دلخواه داخل badge
+  - پشتیبانی از رنگ، اندازه، border و انیمیشن روی تغییر شمارنده
+- **`badgeBuilder` در `DrawerListTile`**: builder داینامیک برای badge
+  - هر بار بازسازی تب، builder فراخوانی می‌شود — وضعیت زنده را منعکس می‌کند
+  - اگر هم `badge` و هم `badgeBuilder` تعریف شده باشد، `badgeBuilder` اولویت دارد
+  - می‌تواند `null` برگرداند تا badge پنهان شود
+
+### Fixed
+- حذف `_scaleController` (AnimationController بلااستفاده / dead code) از `VerticalTabBarState`
+- حذف `SingleTickerProviderStateMixin` که دیگر نیاز نبود
+- حذف کامنت `// ignore_for_file: use_build_context_synchronously` که بدون دلیل واقعی بود
+- موقعیت badge روی آیکون از `top: -4` به `top: -6` اصلاح شد برای نمایش بهتر
+
 ## [1.1.0] - 2024-02-07
 
 ### Added - Sidebar Enhancements

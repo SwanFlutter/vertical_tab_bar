@@ -1,5 +1,3 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'package:flutter/material.dart';
 
 import 'sidebar.dart';
@@ -235,29 +233,15 @@ class VerticalTabBar extends StatefulWidget {
   }
 }
 
-class VerticalTabBarState extends State<VerticalTabBar>
-    with SingleTickerProviderStateMixin {
+class VerticalTabBarState extends State<VerticalTabBar> {
   late int _internalIndex;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  late AnimationController _scaleController;
   int _hoveredIndex = -1;
 
   @override
   void initState() {
     super.initState();
     _internalIndex = widget.initialIndex;
-
-    // Initialize scale animation controller for subtle bounce effect
-    _scaleController = AnimationController(
-      duration: const Duration(milliseconds: 200),
-      vsync: this,
-    );
-  }
-
-  @override
-  void dispose() {
-    _scaleController.dispose();
-    super.dispose();
   }
 
   int get _maxIndex {
@@ -306,9 +290,6 @@ class VerticalTabBarState extends State<VerticalTabBar>
         _internalIndex = nextIndex;
       });
     }
-
-    // Trigger scale animation for visual feedback
-    _scaleController.forward().then((_) => _scaleController.reverse());
 
     widget.onTabChanged?.call(nextIndex);
     widget.drawerListTiles[nextIndex].onTap?.call();
@@ -469,16 +450,19 @@ class VerticalTabBarState extends State<VerticalTabBar>
       ),
     );
 
-    if (tabItem.badge == null) return icon;
+    // Resolve badge: badgeBuilder takes priority over static badge
+    final resolvedBadge = tabItem.badgeBuilder?.call(context) ?? tabItem.badge;
+
+    if (resolvedBadge == null) return icon;
 
     return Stack(
       clipBehavior: Clip.none,
       children: [
         icon,
         PositionedDirectional(
-          top: -4,
-          end: -4,
-          child: tabItem.badge!,
+          top: -6,
+          end: -6,
+          child: resolvedBadge,
         ),
       ],
     );
@@ -763,7 +747,7 @@ class VerticalTabBarState extends State<VerticalTabBar>
   Widget _buildPages() {
     final currentIndex = _effectiveSelectedIndex;
     final animationDuration =
-        widget.theme?.animationDuration ?? const Duration(milliseconds: 400);
+        widget.theme?.animationDuration ?? const Duration(milliseconds: 300);
     final animationCurve =
         widget.theme?.animationCurve ?? Curves.easeInOutCubic;
     final enableFade = widget.theme?.enableFadeAnimation ?? true;
@@ -774,12 +758,27 @@ class VerticalTabBarState extends State<VerticalTabBar>
       return AnimatedSwitcher(
         duration: animationDuration,
         switchInCurve: animationCurve,
-        switchOutCurve: animationCurve,
+        switchOutCurve: Curves.easeIn,
+        // صفحه ورودی روی صفحه خروجی قرار می‌گیرد — جلوگیری از flash سفید
+        layoutBuilder: (currentChild, previousChildren) {
+          return Stack(
+            alignment: Alignment.topLeft,
+            fit: StackFit.expand,
+            children: [
+              ...previousChildren,
+              if (currentChild != null) currentChild,
+            ],
+          );
+        },
         transitionBuilder: (Widget child, Animation<double> animation) {
+          // تشخیص اینکه این صفحه وارد می‌شود یا خارج
+          final isEntering = child.key == ValueKey<int>(currentIndex);
+
           Widget result = child;
 
-          if (enableSlide) {
-            final beginDx = isRtl ? -0.03 : 0.03;
+          if (enableSlide && isEntering) {
+            // فقط صفحه ورودی slide می‌خورد
+            final beginDx = isRtl ? -0.015 : 0.015;
             result = SlideTransition(
               position: Tween<Offset>(
                 begin: Offset(beginDx, 0),
@@ -795,13 +794,27 @@ class VerticalTabBarState extends State<VerticalTabBar>
           }
 
           if (enableFade) {
-            result = FadeTransition(
-              opacity: CurvedAnimation(
-                parent: animation,
-                curve: Curves.easeIn,
-              ),
-              child: result,
-            );
+            if (isEntering) {
+              // صفحه ورودی: fade از 0 به 1
+              result = FadeTransition(
+                opacity: CurvedAnimation(
+                  parent: animation,
+                  curve: Curves.easeOut,
+                ),
+                child: result,
+              );
+            } else {
+              // صفحه خروجی: سریع‌تر محو می‌شود تا flash سفید نداشته باشیم
+              result = FadeTransition(
+                opacity: Tween<double>(begin: 0.0, end: 1.0).animate(
+                  CurvedAnimation(
+                    parent: animation,
+                    curve: Curves.easeIn,
+                  ),
+                ),
+                child: result,
+              );
+            }
           }
 
           return result;
@@ -813,6 +826,7 @@ class VerticalTabBarState extends State<VerticalTabBar>
       );
     }
 
+    // keepAlivePages: true — همه صفحات در Stack نگه داشته می‌شوند
     final children = List<Widget>.generate(widget.pages.length, (i) {
       final active = i == currentIndex;
       Widget page = KeyedSubtree(
@@ -821,7 +835,7 @@ class VerticalTabBarState extends State<VerticalTabBar>
       );
 
       if (enableSlide) {
-        final beginDx = isRtl ? -0.03 : 0.03;
+        final beginDx = isRtl ? -0.015 : 0.015;
         page = AnimatedSlide(
           offset: active ? Offset.zero : Offset(beginDx, 0),
           duration: animationDuration,
@@ -921,8 +935,31 @@ class DrawerListTile {
   /// Optional trailing widget (e.g. chevron, switch, badge)
   final Widget? trailing;
 
-  /// Optional badge widget (e.g. notification count)
+  /// Optional static badge widget shown on the tab icon.
+  ///
+  /// For live/reactive badges (e.g. notification count from a stream),
+  /// prefer [badgeBuilder] instead.
+  ///
+  /// Example:
+  /// ```dart
+  /// badge: TabBadge(count: 3)
+  /// badge: TabBadge.dot()
+  /// ```
   final Widget? badge;
+
+  /// Builder for a dynamic badge widget shown on the tab icon.
+  ///
+  /// Called every time the tab is rebuilt, so it reflects the latest state.
+  /// Takes priority over [badge] when both are provided.
+  /// Return `null` to hide the badge.
+  ///
+  /// Example:
+  /// ```dart
+  /// badgeBuilder: (context) => unreadCount > 0
+  ///     ? TabBadge(count: unreadCount)
+  ///     : null,
+  /// ```
+  final Widget? Function(BuildContext context)? badgeBuilder;
 
   /// Optional callback called after selection
   final VoidCallback? onTap;
@@ -936,6 +973,7 @@ class DrawerListTile {
     this.textStyle,
     this.trailing,
     this.badge,
+    this.badgeBuilder,
     this.onTap,
     this.isAction = false,
   });

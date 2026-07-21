@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:vertical_tab_bar/vertical_tab_bar.dart';
 
-import 'sidebar_with_brand_example.dart';
-
 void main() {
   runApp(const MyApp());
 }
@@ -25,31 +23,74 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class ExampleHomePage extends StatelessWidget {
+class ExampleHomePage extends StatefulWidget {
   const ExampleHomePage({super.key});
 
   @override
+  State<ExampleHomePage> createState() => _ExampleHomePageState();
+}
+
+class _ExampleHomePageState extends State<ExampleHomePage> {
+  // Live counters for badge demo
+  int _messageCount = 4;
+  int _notifCount = 12;
+
+  void _addMessage() => setState(() => _messageCount++);
+  void _clearMessages() => setState(() => _messageCount = 0);
+  void _addNotif() => setState(() => _notifCount++);
+  void _clearNotifs() => setState(() => _notifCount = 0);
+
+  @override
   Widget build(BuildContext context) {
-    // Define tabs
     final tabs = [
-      const DrawerListTile(title: 'داشبورد مدیریتی و کنترل مرکزی سیستم مدیک‌پلن', icon: Icon(Icons.home)),
-      const DrawerListTile(title: 'Profile', icon: Icon(Icons.person)),
-      const DrawerListTile(title: 'Settings', icon: Icon(Icons.settings)),
-      const DrawerListTile(title: 'Messages', icon: Icon(Icons.message)),
       const DrawerListTile(
-          title: 'Notifications', icon: Icon(Icons.notifications)),
+        title: 'داشبورد',
+        icon: Icon(Icons.home),
+        // No badge on home tab
+      ),
+      const DrawerListTile(
+        title: 'Profile',
+        icon: Icon(Icons.person),
+        // Static dot badge — always visible
+        badge: TabBadge.dot(color: Colors.green),
+      ),
+      const DrawerListTile(
+        title: 'Settings',
+        icon: Icon(Icons.settings),
+        // Static custom badge with an icon
+        badge: TabBadge.custom(
+          color: Colors.orange,
+          size: 16,
+          child: Icon(Icons.star, size: 8, color: Colors.white),
+        ),
+      ),
+      DrawerListTile(
+        title: 'Messages',
+        icon: const Icon(Icons.message),
+        // Dynamic badge — updates live when _messageCount changes
+        badgeBuilder: (context) => _messageCount > 0
+            ? TabBadge(count: _messageCount, color: Colors.red)
+            : null,
+      ),
+      DrawerListTile(
+        title: 'Notifications',
+        icon: const Icon(Icons.notifications),
+        // Dynamic badge — updates live when _notifCount changes
+        badgeBuilder: (context) => _notifCount > 0
+            ? TabBadge(count: _notifCount, color: Colors.deepPurple)
+            : null,
+      ),
     ];
 
-    // Define pages
     final pages = [
       const HomePage(),
       const ProfilePage(),
       const SettingsPage(),
-      const MessagesPage(),
-      const NotificationsPage(),
+      // Pass callbacks so the pages can manipulate badge counts
+      MessagesPage(onAdd: _addMessage, onClear: _clearMessages),
+      NotificationsPage(onAdd: _addNotif, onClear: _clearNotifs),
     ];
 
-    // Custom theme with gradient and smooth animations
     final theme = VerticalTabBarTheme.linearGradient(
       gradientColors: [Colors.purple.shade300, Colors.blue.shade300],
       begin: Alignment.topLeft,
@@ -71,8 +112,7 @@ class ExampleHomePage extends StatelessWidget {
       unselectedIconColor: Colors.grey.shade600,
       iconTextSpacing: 16.0,
       tabPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-      // Animation settings
-      animationDuration: const Duration(milliseconds: 400),
+      animationDuration: const Duration(milliseconds: 220),
       animationCurve: Curves.easeInOutCubic,
       enableScaleAnimation: true,
       enableFadeAnimation: true,
@@ -83,11 +123,9 @@ class ExampleHomePage extends StatelessWidget {
       drawerListTiles: tabs,
       pages: pages,
       theme: theme,
-      // Responsive settings
       mobileBreakpoint: 600,
       tabletBreakpoint: 900,
       enableDrawerMode: true,
-      // Appearance settings
       widthTabBar: 250,
       heightAnimatedBox: 55,
       widthAnimatedBox: 6,
@@ -99,7 +137,8 @@ class ExampleHomePage extends StatelessWidget {
   }
 }
 
-// Home Page
+// ─── Pages ─────────────────────────────────────────────────────────────────
+
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
@@ -129,7 +168,11 @@ class HomePage extends StatelessWidget {
                 _buildCard('Smooth Animation', Icons.animation, Colors.purple),
                 _buildCard('Responsive', Icons.devices, Colors.blue),
                 _buildCard('Customizable', Icons.tune, Colors.green),
-                _buildCard('Professional', Icons.star, Colors.orange),
+                _buildCard(
+                  'Badge Support',
+                  Icons.notifications_active,
+                  Colors.orange,
+                ),
               ],
             ),
           ),
@@ -160,7 +203,6 @@ class HomePage extends StatelessWidget {
   }
 }
 
-// Profile Page
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
@@ -208,7 +250,6 @@ class ProfilePage extends StatelessWidget {
   }
 }
 
-// Settings Page
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
 
@@ -269,73 +310,152 @@ class SettingsPage extends StatelessWidget {
   }
 }
 
-// Messages Page
+/// Messages page — demonstrates live badge manipulation
 class MessagesPage extends StatelessWidget {
-  const MessagesPage({super.key});
+  final VoidCallback onAdd;
+  final VoidCallback onClear;
+
+  const MessagesPage({super.key, required this.onAdd, required this.onClear});
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: 10,
-      itemBuilder: (context, index) {
-        return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          child: ListTile(
-            leading: CircleAvatar(
-              backgroundColor:
-                  Colors.primaries[index % Colors.primaries.length],
-              child: Text('${index + 1}'),
-            ),
-            title: Text('Message ${index + 1}'),
-            subtitle: const Text('This is a sample message...'),
-            trailing: Text(
-              '${index + 1}:00',
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-            ),
+    return Column(
+      children: [
+        // Badge control bar
+        Container(
+          color: Colors.red.shade50,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          child: Row(
+            children: [
+              const Icon(Icons.info_outline, size: 18, color: Colors.red),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  'Badge demo — tap buttons to update the tab badge',
+                  style: TextStyle(fontSize: 13),
+                ),
+              ),
+              TextButton.icon(
+                onPressed: onAdd,
+                icon: const Icon(Icons.add, size: 16),
+                label: const Text('+1 Message'),
+              ),
+              TextButton.icon(
+                onPressed: onClear,
+                icon: const Icon(Icons.clear, size: 16),
+                label: const Text('Clear'),
+              ),
+            ],
           ),
-        );
-      },
+        ),
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: 10,
+            itemBuilder: (context, index) {
+              return Card(
+                margin: const EdgeInsets.only(bottom: 12),
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor:
+                        Colors.primaries[index % Colors.primaries.length],
+                    child: Text(
+                      '${index + 1}',
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  title: Text('Message ${index + 1}'),
+                  subtitle: const Text('This is a sample message...'),
+                  trailing: Text(
+                    '${index + 1}:00',
+                    style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }
 
-// Notifications Page
+/// Notifications page — demonstrates live badge manipulation
 class NotificationsPage extends StatelessWidget {
-  const NotificationsPage({super.key});
+  final VoidCallback onAdd;
+  final VoidCallback onClear;
+
+  const NotificationsPage({
+    super.key,
+    required this.onAdd,
+    required this.onClear,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(16),
+    return Column(
       children: [
-        _buildNotification(
-          'New Notification',
-          'You have a new message',
-          Icons.message,
-          Colors.blue,
-          '5 minutes ago',
+        // Badge control bar
+        Container(
+          color: Colors.purple.shade50,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          child: Row(
+            children: [
+              Icon(Icons.info_outline, size: 18, color: Colors.purple.shade700),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  'Badge demo — tap buttons to update the tab badge',
+                  style: TextStyle(fontSize: 13),
+                ),
+              ),
+              TextButton.icon(
+                onPressed: onAdd,
+                icon: const Icon(Icons.add, size: 16),
+                label: const Text('+1 Notif'),
+              ),
+              TextButton.icon(
+                onPressed: onClear,
+                icon: const Icon(Icons.clear, size: 16),
+                label: const Text('Clear'),
+              ),
+            ],
+          ),
         ),
-        _buildNotification(
-          'Update',
-          'New version available',
-          Icons.system_update,
-          Colors.green,
-          '1 hour ago',
-        ),
-        _buildNotification(
-          'Warning',
-          'Please change your password',
-          Icons.warning,
-          Colors.orange,
-          '2 hours ago',
-        ),
-        _buildNotification(
-          'Success',
-          'Your profile has been updated',
-          Icons.check_circle,
-          Colors.purple,
-          'Yesterday',
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              _buildNotification(
+                'New Notification',
+                'You have a new message',
+                Icons.message,
+                Colors.blue,
+                '5 minutes ago',
+              ),
+              _buildNotification(
+                'Update',
+                'New version available',
+                Icons.system_update,
+                Colors.green,
+                '1 hour ago',
+              ),
+              _buildNotification(
+                'Warning',
+                'Please change your password',
+                Icons.warning,
+                Colors.orange,
+                '2 hours ago',
+              ),
+              _buildNotification(
+                'Success',
+                'Your profile has been updated',
+                Icons.check_circle,
+                Colors.purple,
+                'Yesterday',
+              ),
+            ],
+          ),
         ),
       ],
     );
