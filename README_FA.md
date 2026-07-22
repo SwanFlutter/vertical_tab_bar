@@ -672,6 +672,104 @@ Sidebar(
 )
 ```
 
+## Sidebar — Badge روی آیتم‌ها 🔴
+
+هر `SidebarItem` می‌تواند badge روی آیکون داشته باشد — دقیقاً همان API که در `DrawerListTile` وجود دارد:
+
+| پارامتر | نوع | توضیح |
+|---|---|---|
+| `badge` | `Widget?` | badge استاتیک — مستقیم روی آیکون نمایش داده می‌شود. می‌توان `TabBadge`، `Container` یا هر ویجتی داد. |
+| `badgeBuilder` | `Widget? Function(BuildContext)?` | badge داینامیک — هر بار rebuild صدا زده می‌شود. `null` badge را مخفی می‌کند. اولویت بالاتر از `badge`. |
+
+### Badge استاتیک
+
+```dart
+SidebarItem(
+  icon: Icons.message_outlined,
+  selectedIcon: Icons.message,
+  label: 'پیام‌ها',
+  onTap: () {},
+  badge: TabBadge(count: 5),             // شمارنده
+  // badge: TabBadge.dot(),              // نقطه
+  // badge: TabBadge.custom(child: ...), // ویجت دلخواه
+)
+```
+
+### Badge زنده با `badgeBuilder`
+
+```dart
+SidebarItem(
+  icon: Icons.notifications_outlined,
+  selectedIcon: Icons.notifications,
+  label: 'اعلان‌ها',
+  onTap: () {},
+  badgeBuilder: (context) => _notifCount > 0
+      ? TabBadge(count: _notifCount, color: Colors.red)
+      : null, // null = badge مخفی می‌شود
+)
+```
+
+### مثال کامل Sidebar با badge
+
+```dart
+class _MyState extends State<MyPage> {
+  int _messages = 3;
+  int _notifs = 100;
+
+  @override
+  Widget build(BuildContext context) {
+    return Sidebar(
+      primaryColor: const Color(0xFF0078D4),
+      selectedIconColor: Colors.blue,
+      selectedTextColor: Colors.blue.shade800,
+      items: [
+        SidebarItem(
+          icon: Icons.home_outlined,
+          selectedIcon: Icons.home,
+          label: 'خانه',
+          onTap: () {},
+          // بدون badge
+        ),
+        SidebarItem(
+          icon: Icons.message_outlined,
+          selectedIcon: Icons.message,
+          label: 'پیام‌ها',
+          onTap: () {},
+          // badge زنده — با setState آپدیت می‌شود
+          badgeBuilder: (context) => _messages > 0
+              ? TabBadge(count: _messages, color: Colors.red)
+              : null,
+        ),
+        SidebarItem(
+          icon: Icons.notifications_outlined,
+          selectedIcon: Icons.notifications,
+          label: 'اعلان‌ها',
+          onTap: () {},
+          // بالای 99 میشه "99+"
+          badgeBuilder: (context) => _notifs > 0
+              ? TabBadge(count: _notifs, maxCount: 99, color: Colors.deepPurple)
+              : null,
+        ),
+        SidebarItem(
+          icon: Icons.person_outline,
+          selectedIcon: Icons.person,
+          label: 'پروفایل',
+          onTap: () {},
+          // نقطه سبز = آنلاین — همیشه نمایش داده می‌شود
+          badge: TabBadge.dot(color: Colors.green),
+        ),
+      ],
+      pages: const [
+        Center(child: Text('خانه')),
+        Center(child: Text('پیام‌ها')),
+        Center(child: Text('اعلان‌ها')),
+        Center(child: Text('پروفایل')),
+      ],
+    );
+  }
+}
+```
+
 ## مثال‌های پیشرفته 🔥
 
 ### مثال 1: اپلیکیشن داشبورد

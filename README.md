@@ -665,6 +665,43 @@ SidebarItem(
 )
 ```
 
+#### Item Badge Parameters
+
+`SidebarItem` also supports badges on the icon — identical API to `DrawerListTile`:
+
+| Parameter | Type | Description |
+|---|---|---|
+| `badge` | `Widget?` | Static badge — shown as-is on the icon. Use `TabBadge`, a `Container`, or any widget. |
+| `badgeBuilder` | `Widget? Function(BuildContext)?` | Dynamic badge — called on every rebuild. Return `null` to hide. Takes priority over `badge`. |
+
+**Static badge:**
+
+```dart
+SidebarItem(
+  icon: Icons.message_outlined,
+  selectedIcon: Icons.message,
+  label: 'Messages',
+  onTap: () {},
+  badge: TabBadge(count: 5),           // number
+  // badge: TabBadge.dot(),            // dot
+  // badge: TabBadge.custom(child: ...), // custom widget
+)
+```
+
+**Live badge with `badgeBuilder`:**
+
+```dart
+SidebarItem(
+  icon: Icons.notifications_outlined,
+  selectedIcon: Icons.notifications,
+  label: 'Notifications',
+  onTap: () {},
+  badgeBuilder: (context) => _notifCount > 0
+      ? TabBadge(count: _notifCount, color: Colors.red)
+      : null, // null hides the badge
+)
+```
+
 ### Brand Background
 - **Fixed Position**: Logo stays near footer while items scroll
 - **Theme Aware**: Automatically switches between light/dark logos
