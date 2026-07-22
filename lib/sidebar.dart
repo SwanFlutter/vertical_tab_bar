@@ -6,7 +6,13 @@ import 'src/widgets/marquee_text.dart';
 /// A reusable and dynamic sidebar widget for Flutter applications.
 class Sidebar extends StatefulWidget {
   /// Application title displayed in the sidebar header.
-  final String? appTitle;
+  ///
+  /// Accepts any widget — typically a [Text] with custom style:
+  /// ```dart
+  /// appTitle: Text('My App', style: TextStyle(color: Colors.white, fontSize: 18))
+  /// appTitle: Text('My App')   // uses sidebar's default title style
+  /// ```
+  final Widget? appTitle;
 
   /// Icon for the application logo.
   final IconData? logoIcon;
@@ -436,15 +442,16 @@ class _SidebarState extends State<Sidebar> {
                 if (showText && widget.appTitle != null) ...[
                   const SizedBox(width: 12),
                   Expanded(
-                    child: Text(
-                      widget.appTitle!,
-                      style: theme.textTheme.titleMedium?.copyWith(
+                    child: DefaultTextStyle.merge(
+                      style: theme.textTheme.titleMedium!.copyWith(
                         fontWeight: FontWeight.bold,
                         color: textColor,
                         fontSize: 20,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      overflow: TextOverflow.ellipsis,
                       maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      child: widget.appTitle!,
                     ),
                   ),
                 ],

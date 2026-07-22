@@ -54,10 +54,7 @@ class _SidebarCustomHeaderPageState extends State<SidebarCustomHeaderPage> {
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [
-                      Color(0xFF137FEC),
-                      Color(0xFF1E88E5),
-                    ],
+                    colors: [Color(0xFF137FEC), Color(0xFF1E88E5)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -71,11 +68,7 @@ class _SidebarCustomHeaderPageState extends State<SidebarCustomHeaderPage> {
                 child: const Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.medical_services,
-                      color: Colors.white,
-                      size: 32,
-                    ),
+                    Icon(Icons.medical_services, color: Colors.white, size: 32),
                     SizedBox(height: 4),
                     Text(
                       'مدیک‌پلن',
@@ -140,7 +133,7 @@ class _SidebarCustomHeaderPageState extends State<SidebarCustomHeaderPage> {
 
             // Example 4: Sidebar with only title
             VerticalTabBar.sidebar(
-              appTitle: 'اپلیکیشن من',
+              appTitle: const Text('اپلیکیشن من'),
               showHeader: true,
               primaryColor: const Color(0xFF137FEC),
               items: [
@@ -181,10 +174,7 @@ class _SidebarCustomHeaderPageState extends State<SidebarCustomHeaderPage> {
                       Text(
                         '۱. بدون header\n۲. با header سفارشی\n۳. فقط لوگو\n۴. فقط عنوان',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                       ),
                     ],
                   ),

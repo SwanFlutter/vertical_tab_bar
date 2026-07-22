@@ -3,12 +3,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:vertical_tab_bar/vertical_tab_bar.dart';
 
 void main() {
-  testWidgets('VerticalTabBar.sidebar() renders correctly', (WidgetTester tester) async {
+  testWidgets('VerticalTabBar.sidebar() renders correctly',
+      (WidgetTester tester) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
           body: VerticalTabBar.sidebar(
-            appTitle: 'Test App',
+            appTitle: const Text('Test App'),
             items: [
               SidebarItem(
                 icon: Icons.home,

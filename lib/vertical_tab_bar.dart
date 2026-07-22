@@ -179,7 +179,7 @@ class VerticalTabBar extends StatefulWidget {
   VerticalTabBarState createState() => VerticalTabBarState();
 
   static Widget sidebar({
-    String? appTitle,
+    Widget? appTitle,
     required List<SidebarItem> items,
     IconData? logoIcon,
     bool showHeader = true,

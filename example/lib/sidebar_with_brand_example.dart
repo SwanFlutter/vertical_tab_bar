@@ -30,10 +30,10 @@ class _SidebarWithBrandPageState extends State<SidebarWithBrandPage> {
       home: Directionality(
         textDirection: TextDirection.rtl,
         child: Scaffold(
-          // نکته بسیار مهم: Row اضافی حذف شد. 
+          // نکته بسیار مهم: Row اضافی حذف شد.
           // ویجت VerticalTabBar.sidebar وقتی دارای pages باشد، خودش یک Row برمی‌گرداند.
           body: VerticalTabBar.sidebar(
-            appTitle: 'مدیک‌پلن هوشمند',
+            appTitle: const Text('مدیک‌پلن هوشمند'),
             logoIcon: Icons.medical_services,
             showHeader: true,
             primaryColor: const Color(0xFF137FEC),
@@ -54,7 +54,9 @@ class _SidebarWithBrandPageState extends State<SidebarWithBrandPage> {
                           Icon(
                             Icons.dashboard,
                             size: 80,
-                            color: const Color(0xFF137FEC).withValues(alpha: 0.3),
+                            color: const Color(
+                              0xFF137FEC,
+                            ).withValues(alpha: 0.3),
                           ),
                           const SizedBox(height: 24),
                           Padding(
@@ -75,8 +77,12 @@ class _SidebarWithBrandPageState extends State<SidebarWithBrandPage> {
                                 _isDarkMode = !_isDarkMode;
                               });
                             },
-                            icon: Icon(_isDarkMode ? Icons.light_mode : Icons.dark_mode),
-                            label: Text(_isDarkMode ? 'حالت روشن' : 'حالت تاریک'),
+                            icon: Icon(
+                              _isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                            ),
+                            label: Text(
+                              _isDarkMode ? 'حالت روشن' : 'حالت تاریک',
+                            ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF137FEC),
                               foregroundColor: Colors.white,
@@ -132,13 +138,14 @@ class _SidebarWithBrandPageState extends State<SidebarWithBrandPage> {
             userName: 'دکتر سارا احمدی',
             userSubtitle: 'متخصص داخلی',
             // آدرس تصویر جدید و پایدار
-            userImageUrl: 'https://ui-avatars.com/api/?name=Sara+Ahmadi&background=137FEC&color=fff',
+            userImageUrl:
+                'https://ui-avatars.com/api/?name=Sara+Ahmadi&background=137FEC&color=fff',
             showLogoutButton: true,
             logoutText: 'خروج از سیستم',
             onLogout: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('خروج از سیستم...')),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('خروج از سیستم...')));
             },
           ),
         ),
