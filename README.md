@@ -409,8 +409,15 @@ Use the enhanced sidebar with user profile and logout button:
 VerticalTabBar.sidebar(
   appTitle: 'مدیک‌پلن',
   logoIcon: Icons.medical_services,
-  showHeader: true, // Show/hide header section
+  showHeader: true,
   primaryColor: const Color(0xFF137FEC),
+  // ── Global item colors ───────────────────────────────────
+  selectedItemColor: const Color(0xFF137FEC).withOpacity(0.15), // selected bg
+  selectedIconColor: const Color(0xFF137FEC),   // icon when selected
+  unselectedIconColor: Colors.grey,             // icon when unselected
+  selectedTextColor: const Color(0xFF137FEC),   // label when selected
+  unselectedTextColor: Colors.black87,          // label when unselected
+  // ────────────────────────────────────────────────────────
   items: [
     SidebarItem(
       icon: Icons.dashboard_outlined,
@@ -617,6 +624,46 @@ The enhanced `VerticalTabBar.sidebar()` provides a complete sidebar solution:
 - **Icon States**: Different icons for selected/unselected states
 - **Scrollable**: Items scroll smoothly over brand background
 - **Responsive**: Adapts to collapsed/expanded states
+- **Full Color Control**: Customize selected/unselected colors at both sidebar-level (global) and per-item level
+
+#### Item Color Parameters
+
+Colors can be set globally on the `Sidebar` widget, or overridden per item via `SidebarItem`. Per-item always wins.
+
+**`Sidebar` — global (apply to all items):**
+
+| Parameter | Description | Default |
+|---|---|---|
+| `selectedItemColor` | Background color of the selected item | `primaryColor` at 12–20% opacity |
+| `selectedIconColor` | Icon color when item is selected | `primaryColor` |
+| `unselectedIconColor` | Icon color when item is not selected | grey (textSecondary) |
+| `selectedTextColor` | Label color when item is selected | `primaryColor` |
+| `unselectedTextColor` | Label color when item is not selected | black87 / white (textPrimary) |
+
+**`SidebarItem` — per-item override:**
+
+| Parameter | Description |
+|---|---|
+| `selectedColor` | Background color override for this item only |
+| `selectedIconColor` | Icon color override when this item is selected |
+| `unselectedIconColor` | Icon color override when this item is unselected |
+| `selectedTextColor` | Text color override when this item is selected |
+| `unselectedTextColor` | Text color override when this item is unselected |
+
+**Per-item example:**
+
+```dart
+SidebarItem(
+  icon: Icons.warning_outlined,
+  selectedIcon: Icons.warning,
+  label: 'Alerts',
+  onTap: () {},
+  // Only this item uses orange when selected
+  selectedColor: Colors.orange.withOpacity(0.15),
+  selectedIconColor: Colors.orange,
+  selectedTextColor: Colors.orange.shade800,
+)
+```
 
 ### Brand Background
 - **Fixed Position**: Logo stays near footer while items scroll

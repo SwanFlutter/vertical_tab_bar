@@ -74,6 +74,31 @@ class Sidebar extends StatefulWidget {
   /// Logout button text
   final String logoutText;
 
+  /// Global: background color of a selected item.
+  /// Overrides the default (primaryColor with low opacity).
+  /// Per-item [SidebarItem.selectedColor] takes priority over this.
+  final Color? selectedItemColor;
+
+  /// Global: icon color when an item is selected.
+  /// Per-item [SidebarItem.selectedIconColor] takes priority over this.
+  /// Falls back to [primaryColor].
+  final Color? selectedIconColor;
+
+  /// Global: icon color when an item is unselected.
+  /// Per-item [SidebarItem.unselectedIconColor] takes priority over this.
+  /// Falls back to textSecondary (grey).
+  final Color? unselectedIconColor;
+
+  /// Global: text color when an item is selected.
+  /// Per-item [SidebarItem.selectedTextColor] takes priority over this.
+  /// Falls back to [primaryColor].
+  final Color? selectedTextColor;
+
+  /// Global: text color when an item is unselected.
+  /// Per-item [SidebarItem.unselectedTextColor] takes priority over this.
+  /// Falls back to textPrimary.
+  final Color? unselectedTextColor;
+
   /// Pages to display next to the sidebar
   final List<Widget>? pages;
 
@@ -86,6 +111,11 @@ class Sidebar extends StatefulWidget {
     this.customHeader,
     this.primaryColor = const Color(0xFF0078D4),
     this.secondaryColor,
+    this.selectedItemColor,
+    this.selectedIconColor,
+    this.unselectedIconColor,
+    this.selectedTextColor,
+    this.unselectedTextColor,
     this.initiallyExpanded = true,
     this.onExpandedChanged,
     this.backgroundColorLight,
@@ -330,6 +360,34 @@ class _SidebarState extends State<Sidebar> {
     );
   }
 
+  /// Wraps an icon with an optional badge (static or dynamic).
+  /// badgeBuilder takes priority over badge.
+  Widget _buildIconWithBadge(
+    BuildContext context,
+    SidebarItem item, {
+    required IconData iconData,
+    required Color iconColor,
+    required double iconSize,
+  }) {
+    final icon = Icon(iconData, size: iconSize, color: iconColor);
+
+    final resolvedBadge = item.badgeBuilder?.call(context) ?? item.badge;
+
+    if (resolvedBadge == null) return icon;
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        icon,
+        PositionedDirectional(
+          top: -6,
+          end: -6,
+          child: resolvedBadge,
+        ),
+      ],
+    );
+  }
+
   Widget _buildHeader(
       BuildContext context, bool isDark, Color textColor, ThemeData theme) {
     final borderColor =
@@ -411,13 +469,34 @@ class _SidebarState extends State<Sidebar> {
         ? Colors.white.withValues(alpha: 0.05)
         : widget.primaryColor.withValues(alpha: 0.08);
 
-    final selectedBgColor = isDark
-        ? widget.primaryColor.withValues(alpha: 0.15)
-        : widget.primaryColor.withValues(alpha: 0.12);
     final isSelected = (widget.pages != null && (widget.pages!.isNotEmpty))
         ? index == _effectiveSelectedIndex
         : item.isSelected;
     final isHovered = _hoveredIndex == index;
+
+    // ── رنگ پس‌زمینه آیتم انتخاب‌شده ──────────────────────────────────────
+    // اولویت: per-item → global → fallback (primaryColor + opacity)
+    final Color selectedBg = item.selectedColor ??
+        widget.selectedItemColor ??
+        (isDark
+            ? widget.primaryColor.withValues(alpha: 0.20)
+            : widget.primaryColor.withValues(alpha: 0.12));
+
+    // ── رنگ آیکون ──────────────────────────────────────────────────────────
+    final Color resolvedIconSelected = item.selectedIconColor ??
+        widget.selectedIconColor ??
+        widget.primaryColor;
+
+    final Color resolvedIconUnselected =
+        item.unselectedIconColor ?? widget.unselectedIconColor ?? textSecondary;
+
+    // ── رنگ متن ────────────────────────────────────────────────────────────
+    final Color resolvedTextSelected = item.selectedTextColor ??
+        widget.selectedTextColor ??
+        widget.primaryColor;
+
+    final Color resolvedTextUnselected =
+        item.unselectedTextColor ?? widget.unselectedTextColor ?? textPrimary;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
@@ -448,7 +527,7 @@ class _SidebarState extends State<Sidebar> {
               vertical: 12,
             ),
             decoration: BoxDecoration(
-              color: isSelected ? selectedBgColor : Colors.transparent,
+              color: isSelected ? selectedBg : Colors.transparent,
               borderRadius: BorderRadius.circular(8),
             ),
             child: LayoutBuilder(
@@ -459,10 +538,14 @@ class _SidebarState extends State<Sidebar> {
                       ? MainAxisAlignment.start
                       : MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      isSelected ? item.selectedIcon : item.icon,
-                      size: 22,
-                      color: isSelected ? widget.primaryColor : textSecondary,
+                    _buildIconWithBadge(
+                      context,
+                      item,
+                      iconData: isSelected ? item.selectedIcon : item.icon,
+                      iconColor: isSelected
+                          ? resolvedIconSelected
+                          : resolvedIconUnselected,
+                      iconSize: 22,
                     ),
                     if (showText) ...[
                       const SizedBox(width: 12),
@@ -473,8 +556,8 @@ class _SidebarState extends State<Sidebar> {
                           isSelected: isSelected,
                           style: theme.textTheme.bodyMedium?.copyWith(
                                 color: isSelected
-                                    ? widget.primaryColor
-                                    : textPrimary,
+                                    ? resolvedTextSelected
+                                    : resolvedTextUnselected,
                                 fontWeight: isSelected
                                     ? FontWeight.w600
                                     : FontWeight.normal,

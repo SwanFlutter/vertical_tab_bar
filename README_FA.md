@@ -561,6 +561,117 @@ cd example
 flutter run -t lib/sidebar_widget_example.dart
 ```
 
+## Sidebar — کنترل رنگ آیتم‌ها 🎨
+
+رنگ‌های آیتم انتخاب‌شده و غیرانتخاب در دو سطح قابل تنظیم است:
+
+### سطح Global (روی `Sidebar`)
+
+این رنگ‌ها روی همه آیتم‌ها اعمال می‌شوند:
+
+| پارامتر | توضیح | پیشفرض |
+|---|---|---|
+| `selectedItemColor` | رنگ پس‌زمینه آیتم انتخاب‌شده | `primaryColor` با ۱۲–۲۰٪ opacity |
+| `selectedIconColor` | رنگ آیکون در حالت انتخاب | `primaryColor` |
+| `unselectedIconColor` | رنگ آیکون در حالت غیرانتخاب | خاکستری |
+| `selectedTextColor` | رنگ متن در حالت انتخاب | `primaryColor` |
+| `unselectedTextColor` | رنگ متن در حالت غیرانتخاب | مشکی / سفید (بسته به تم) |
+
+```dart
+VerticalTabBar.sidebar(
+  primaryColor: const Color(0xFF137FEC),
+  // رنگ‌های global برای همه آیتم‌ها
+  selectedItemColor: Colors.blue.withOpacity(0.15),
+  selectedIconColor: Colors.blue,
+  unselectedIconColor: Colors.grey,
+  selectedTextColor: Colors.blue.shade800,
+  unselectedTextColor: Colors.black87,
+  items: [ ... ],
+)
+```
+
+### سطح Per-item (روی `SidebarItem`)
+
+هر آیتم می‌تواند رنگ خودش را داشته باشد — اولویت بالاتر از global:
+
+| پارامتر | توضیح |
+|---|---|
+| `selectedColor` | رنگ پس‌زمینه فقط این آیتم |
+| `selectedIconColor` | رنگ آیکون فقط این آیتم در حالت انتخاب |
+| `unselectedIconColor` | رنگ آیکون فقط این آیتم در حالت غیرانتخاب |
+| `selectedTextColor` | رنگ متن فقط این آیتم در حالت انتخاب |
+| `unselectedTextColor` | رنگ متن فقط این آیتم در حالت غیرانتخاب |
+
+```dart
+// مثال: آیتم هشدار با رنگ نارنجی اختصاصی
+SidebarItem(
+  icon: Icons.warning_outlined,
+  selectedIcon: Icons.warning,
+  label: 'هشدارها',
+  onTap: () {},
+  selectedColor: Colors.orange.withOpacity(0.15),
+  selectedIconColor: Colors.orange,
+  selectedTextColor: Colors.orange.shade800,
+)
+```
+
+### اولویت‌بندی رنگ‌ها
+
+```
+per-item (SidebarItem.selectedIconColor)
+  ↓ اگر null بود
+global (Sidebar.selectedIconColor)
+  ↓ اگر null بود
+fallback (primaryColor / textSecondary)
+```
+
+### مثال کامل با رنگ‌های مختلف
+
+```dart
+Sidebar(
+  primaryColor: const Color(0xFF0078D4),
+  // رنگ پیشفرض برای همه آیتم‌ها
+  selectedIconColor: Colors.blue,
+  unselectedIconColor: Colors.grey.shade500,
+  selectedTextColor: Colors.blue.shade800,
+  unselectedTextColor: Colors.grey.shade700,
+  selectedItemColor: Colors.blue.withOpacity(0.1),
+  items: [
+    SidebarItem(
+      icon: Icons.home_outlined,
+      selectedIcon: Icons.home,
+      label: 'خانه',
+      onTap: () {},
+      // این آیتم از رنگ global استفاده می‌کند
+    ),
+    SidebarItem(
+      icon: Icons.notifications_outlined,
+      selectedIcon: Icons.notifications,
+      label: 'اعلان‌ها',
+      onTap: () {},
+      // این آیتم رنگ اختصاصی دارد
+      selectedColor: Colors.red.withOpacity(0.12),
+      selectedIconColor: Colors.red,
+      selectedTextColor: Colors.red.shade700,
+    ),
+    SidebarItem(
+      icon: Icons.star_outline,
+      selectedIcon: Icons.star,
+      label: 'موردعلاقه‌ها',
+      onTap: () {},
+      selectedColor: Colors.amber.withOpacity(0.12),
+      selectedIconColor: Colors.amber.shade700,
+      selectedTextColor: Colors.amber.shade900,
+    ),
+  ],
+  pages: const [
+    Center(child: Text('خانه')),
+    Center(child: Text('اعلان‌ها')),
+    Center(child: Text('موردعلاقه‌ها')),
+  ],
+)
+```
+
 ## مثال‌های پیشرفته 🔥
 
 ### مثال 1: اپلیکیشن داشبورد
