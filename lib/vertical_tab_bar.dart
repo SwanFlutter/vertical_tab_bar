@@ -181,7 +181,7 @@ class VerticalTabBar extends StatefulWidget {
   static Widget sidebar({
     Widget? appTitle,
     required List<SidebarItem> items,
-    IconData? logoIcon,
+    Widget? logoIcon,
     bool showHeader = true,
     Widget? customHeader,
     Color primaryColor = const Color(0xFF0078D4),

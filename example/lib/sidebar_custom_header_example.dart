@@ -108,7 +108,7 @@ class _SidebarCustomHeaderPageState extends State<SidebarCustomHeaderPage> {
 
             // Example 3: Sidebar with only logo
             VerticalTabBar.sidebar(
-              logoIcon: Icons.medical_services,
+              logoIcon: Icon(Icons.medical_services),
               showHeader: true,
               primaryColor: const Color(0xFF137FEC),
               items: [

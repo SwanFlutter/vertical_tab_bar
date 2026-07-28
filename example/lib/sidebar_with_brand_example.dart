@@ -34,7 +34,7 @@ class _SidebarWithBrandPageState extends State<SidebarWithBrandPage> {
           // ویجت VerticalTabBar.sidebar وقتی دارای pages باشد، خودش یک Row برمی‌گرداند.
           body: VerticalTabBar.sidebar(
             appTitle: const Text('مدیک‌پلن هوشمند'),
-            logoIcon: Icons.medical_services,
+            logoIcon: Icon(Icons.medical_services),
             showHeader: true,
             primaryColor: const Color(0xFF137FEC),
             showBrandBackground: true,

@@ -15,7 +15,7 @@ class Sidebar extends StatefulWidget {
   final Widget? appTitle;
 
   /// Icon for the application logo.
-  final IconData? logoIcon;
+  final Widget? logoIcon;
 
   /// Show header section (logo and title)
   final bool showHeader;
@@ -418,25 +418,20 @@ class _SidebarState extends State<Sidebar> {
                 // Logo
                 if (widget.logoIcon != null)
                   Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          widget.primaryColor,
-                          widget.secondaryColor ?? widget.primaryColor,
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            widget.primaryColor,
+                            widget.secondaryColor ?? widget.primaryColor,
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      widget.logoIcon,
-                      color: Colors.white,
-                      size: 24,
-                    ),
-                  ),
+                      child: widget.logoIcon),
 
                 // App Name
                 if (showText && widget.appTitle != null) ...[
